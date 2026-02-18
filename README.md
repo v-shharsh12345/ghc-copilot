@@ -1,0 +1,288 @@
+# Copilot Agents
+
+A centralized repository for GitHub Copilot **agents** and **skills** used across MCAPS projects. These agents extend GitHub Copilot Chat in VS Code with domain-specific capabilities for Fabric DevOps, Azure DevOps work-item management, M365 productivity, and data quality validation.
+
+---
+
+## Quick Start
+
+1. **Clone** this repo into your VS Code workspace (or add as a workspace folder).
+2. Copilot will auto-discover agents from `.github/agents/` and skills from `.github/skills/`.
+3. Invoke an agent by name in Copilot Chat — e.g., `@chief-of-staff Daily triage`.
+
+> **Prerequisite**: The MCP servers referenced by each agent (Azure DevOps, WorkIQ, Fabric, Mail, Teams, Power BI Remote) must be configured in your VS Code `settings.json`. See [MCP Server Setup](#mcp-server-setup) below.
+
+---
+
+## Repository Structure
+
+```
+copilot-agents/
+├── README.md                          ← You are here
+├── .gitignore
+└── .github/
+    ├── agents/                        ← Agent definitions (*.agent.md)
+    │   ├── chief-of-staff.agent.md
+    │   ├── fabric-devops.agent.md
+    │   └── semantic-model-comparator.agent.md
+    └── skills/                        ← Skill definitions (SKILL.md + config)
+        ├── compare-semantic-models/
+        │   ├── SKILL.md
+        │   ├── dataset-catalog.yaml
+        │   └── comparison-queries.md
+        ├── create-task/
+        │   └── SKILL.md
+        ├── daily-status-email/
+        │   └── SKILL.md
+        ├── fabric-devops/
+        │   ├── SKILL.md
+        │   ├── config/
+        │   │   ├── execution-router.yaml
+        │   │   ├── intent-router.yaml
+        │   │   └── workspace-catalog.yaml
+        │   └── modules/
+        │       ├── analyze-lineage.md
+        │       ├── capability-matrix.md
+        │       ├── develop.md
+        │       ├── execution-routing.md
+        │       ├── lakehouse-diagnostics.md
+        │       ├── operate-monitor.md
+        │       ├── release-promote.md
+        │       ├── runtime-checks.md
+        │       ├── safety-guardrails.md
+        │       ├── ui-ux-changes.md
+        │       └── validate.md
+        └── update-user-story/
+            └── SKILL.md
+```
+
+---
+
+## Agents
+
+### 1. Chief of Staff (`chief-of-staff`)
+
+| | |
+|---|---|
+| **File** | `.github/agents/chief-of-staff.agent.md` |
+| **Purpose** | Personal productivity and execution agent for the Microsoft 365 ecosystem |
+| **Version** | 3.0 (Jan 2026) |
+
+**What it does:**
+
+- Triages signals from Outlook, Teams, Calendar, and Azure DevOps
+- Connects dots across emails, chats, meetings, and work items
+- Generates daily briefings, meeting prep, and status updates
+- Creates and updates ADO User Stories, Tasks, and Bugs
+- Drafts and sends status emails
+
+**Key commands:**
+
+| Command | Action |
+|---------|--------|
+| `Daily triage` | Morning briefing with priorities, risks, and meetings |
+| `What changed since yesterday?` | Delta summary of notable changes |
+| `Prep me for my next meeting` | Agenda, context, and talking points |
+| `Draft my status mail` | Two-section status update email |
+| `Create user story for [topic]` | Create ADO User Story with proper fields |
+| `Create task for [topic]` | Create ADO Task under Ad-hoc parent |
+| `Convert action items to ADO` | Parse meeting/chat and create work items |
+
+**MCP servers used:** WorkIQ, Azure DevOps, Mail Tools
+
+---
+
+### 2. Fabric DevOps (`fabric-devops`)
+
+| | |
+|---|---|
+| **File** | `.github/agents/fabric-devops.agent.md` |
+| **Purpose** | End-to-end Fabric lifecycle management across DEV/UAT/PROD |
+| **Version** | 1.3 (Feb 2026) |
+
+**What it does:**
+
+- Develops and updates Fabric items (notebooks, pipelines, lakehouses, semantic models, reports)
+- Monitors job execution, pipeline status, and workload health
+- Diagnoses lakehouse dependency failures and run issues
+- Analyzes end-to-end data lineage (table → semantic model → report)
+- Validates deployments across environments with PASS/WARN/FAIL scoring
+- Orchestrates Git sync and deployment pipeline promotion
+
+**Lifecycle modes:**
+
+| Mode | Description | Module |
+|------|-------------|--------|
+| Develop | Create/update items in non-PROD | `modules/develop.md` |
+| Operate & Monitor | Inventory, job status, trends | `modules/operate-monitor.md` |
+| Lakehouse Diagnostics | Failure correlation, dependency tracing | `modules/lakehouse-diagnostics.md` |
+| Analyze Lineage | Column/table/report lineage graphs | `modules/analyze-lineage.md` |
+| Validate | Pre/post-deployment checks | `modules/validate.md` |
+| CI/CD | Deploy, test, promote DEV→UAT→PROD | `modules/release-promote.md` |
+| UI/UX Changes | PBIR-native report formatting | `modules/ui-ux-changes.md` |
+
+**Safety:** Write operations are **prohibited** on PROD workspaces. PROD access is read-only.
+
+**MCP servers used:** Fabric MCP, Teams, MSSQL, Context7
+
+---
+
+### 3. Semantic Model Comparator (`semantic-model-comparator`)
+
+| | |
+|---|---|
+| **File** | `.github/agents/semantic-model-comparator.agent.md` |
+| **Purpose** | Cross-environment semantic model comparison for data quality and deployment readiness |
+| **Version** | 1.0 |
+
+**What it does:**
+
+- Compares Fabric semantic model schemas across DEV, UAT, and PROD
+- Detects schema drift (new/missing columns, measures, relationships)
+- Validates row counts with configurable tolerance thresholds
+- Compares key aggregated measures across environments
+- Checks data freshness alignment
+- Generates comparison reports with PASS/WARN/FAIL status
+
+**Thresholds:**
+
+| Check | Warning | Error |
+|-------|---------|-------|
+| Row Count Variance | >5% | >20% |
+| Metric Variance | >0.1% | >1% |
+| Data Freshness | PROD 1+ day behind | PROD 3+ days behind |
+| Schema Drift | New columns in lower env | Missing columns in lower env |
+
+**Configuration:** Dataset IDs are managed in `skills/compare-semantic-models/dataset-catalog.yaml`.
+
+**MCP servers used:** Power BI Remote
+
+---
+
+## Skills
+
+Skills are reusable instruction sets that agents (or Copilot directly) can invoke to perform specific tasks.
+
+### 1. Create Task (`create-task`)
+
+| | |
+|---|---|
+| **File** | `.github/skills/create-task/SKILL.md` |
+| **Purpose** | Extract actionable tasks from M365 signals and create structured ADO work items |
+| **Version** | 1.1 (Feb 2026) |
+
+Gathers context from WorkIQ (meetings, emails, Teams chats) and Copilot conversations, then creates ADO Tasks with:
+- **What / When / Who** structured descriptions
+- Automatic Ad-hoc parent resolution in the current sprint
+- Story Points (1) and Effort (8h) defaults
+- Mandatory source-citing comments
+- Duplicate detection before creation
+
+---
+
+### 2. Daily Status Email (`daily-status-email`)
+
+| | |
+|---|---|
+| **File** | `.github/skills/daily-status-email/SKILL.md` |
+| **Purpose** | Generate and send a professional end-of-day status email |
+| **Version** | 1.1 (Jan 2026) |
+
+Pulls context from WorkIQ (calendar, email, Teams) and Copilot chat history to produce:
+- **Tasks Completed** section with action-verb-led bullet points
+- **Key Meetings** table with attendees and follow-up tasks
+- Auto-sends via Mail MCP to the configured manager email
+
+---
+
+### 3. Update User Story (`update-user-story`)
+
+| | |
+|---|---|
+| **File** | `.github/skills/update-user-story/SKILL.md` |
+| **Purpose** | Enrich ADO User Stories with detailed requirements from reference materials |
+| **Version** | 1.0 |
+
+Processes documents, conversations, and specifications to update:
+- Description (Overview, Background, Requirements, Dependencies)
+- Acceptance Criteria (Given-When-Then format)
+- Tags (technology, priority, domain)
+- Implementation comments with source citations
+
+---
+
+### 4. Fabric DevOps (`fabric-devops`)
+
+| | |
+|---|---|
+| **File** | `.github/skills/fabric-devops/SKILL.md` |
+| **Purpose** | Modular lifecycle orchestration skill backing the `fabric-devops` agent |
+| **Version** | 2.6 (Feb 2026) |
+
+Config-driven intent routing system with modules for develop, operate, monitor, validate, lineage analysis, UI/UX changes, and release promotion. See the `config/` and `modules/` subdirectories for routing rules, workspace catalog, and domain-specific procedures.
+
+---
+
+### 5. Compare Semantic Models (`compare-semantic-models`)
+
+| | |
+|---|---|
+| **File** | `.github/skills/compare-semantic-models/SKILL.md` |
+| **Purpose** | DAX-based cross-environment semantic model comparison |
+| **Version** | 1.0 |
+
+Provides reusable DAX query patterns and a dataset catalog for comparing schemas, row counts, metrics, and data freshness. Supporting files:
+- `dataset-catalog.yaml` — Dataset IDs by environment (DEV/UAT/PROD)
+- `comparison-queries.md` — Reusable DAX patterns for row counts, metrics, freshness, key coverage
+
+---
+
+## MCP Server Setup
+
+The agents depend on external MCP servers for tool access. Add the following to your VS Code `settings.json` under `mcp.servers`:
+
+| MCP Server | Purpose | Used By |
+|------------|---------|---------|
+| **Azure DevOps** (`microsoft/azure-devops-mcp`) | Work items, repos, pipelines, wikis | Chief of Staff, Create Task, Update User Story |
+| **WorkIQ** (`workiq`) | M365 search (Outlook, Teams, Calendar) | Chief of Staff, Daily Status Email, Create Task |
+| **Mail Tools** (`mcp_mailtools`) | Send/reply/forward Outlook emails | Chief of Staff, Daily Status Email |
+| **Fabric MCP** (`fabric-mcp`) | OneLake, Fabric APIs, workspace management | Fabric DevOps |
+| **Teams** (`mcp_teamsserver`) | Teams chats and channels | Fabric DevOps, Create Task |
+| **Power BI Remote** (`powerbi-remote`) | Semantic model queries and schema | Semantic Model Comparator |
+| **MSSQL** (`ms-mssql.mssql`) | SQL Server queries | Fabric DevOps |
+| **Context7** (`io.github.upstash/context7`) | Library documentation lookup | Fabric DevOps |
+
+---
+
+## Adding a New Agent
+
+1. Create a new `.agent.md` file in `.github/agents/`.
+2. Define the YAML front matter (`name`, `description`, `tools`).
+3. Write the agent instructions in Markdown below the front matter.
+4. If the agent needs a reusable skill, create a folder under `.github/skills/` with a `SKILL.md`.
+5. Update this README with the agent's documentation.
+
+## Adding a New Skill
+
+1. Create a folder under `.github/skills/<skill-name>/`.
+2. Add a `SKILL.md` with YAML front matter (`name`, `description`).
+3. Add any supporting config files (`.yaml`, `.md`) in the same folder.
+4. Reference the skill from agents that need it.
+5. Update this README.
+
+---
+
+## Contributing
+
+1. Create a feature branch from `main`.
+2. Add or update agents/skills following the patterns above.
+3. Test the agent in VS Code Copilot Chat.
+4. Submit a PR with a description of what changed and why.
+
+---
+
+## Version History
+
+| Date | Change |
+|------|--------|
+| 2026-02-18 | Initial repository created; consolidated agents and skills from ABSIncentive and MWScale-2 repos |

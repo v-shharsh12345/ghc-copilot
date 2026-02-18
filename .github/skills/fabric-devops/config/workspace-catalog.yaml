@@ -1,0 +1,24 @@
+version: 1.0
+updatedOn: 2026-02-12
+
+workspaces:
+  - environment: DEV
+    name: GPS Investments & Incentives [DEV]
+    workspaceId: df9b352f-ff95-4701-a74a-1d2d3313d717
+    writeAllowed: true
+    defaultLakehouseName: IncentiveReporting
+    defaultLakehouseId: 5f103236-bcaf-4edf-85f7-5181432a2e7c
+
+  - environment: UAT
+    name: GPS Investments & Incentives [UAT]
+    workspaceId: 456bc970-249a-43dc-8ebf-d04184834876
+    writeAllowed: true
+    defaultLakehouseName: IncentiveReporting
+    defaultLakehouseId: f2b5be99-e8d4-4c8c-9507-9023e2a49c3f
+
+  - environment: PROD
+    name: GPS Investments & Incentives [PROD]
+    workspaceId: 1b5aa9f1-a783-4820-8818-ad3bb2fc9ca9
+    writeAllowed: false
+    defaultLakehouseName: IncentiveReporting
+    defaultLakehouseId: 63a9d305-4e2f-4fbf-89d3-f04e1ab5041e

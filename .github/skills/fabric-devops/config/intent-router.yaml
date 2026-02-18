@@ -1,0 +1,53 @@
+version: 1.1
+updatedOn: 2026-02-13
+owner: fabric-devops
+
+routes:
+  - intent: develop
+    triggers: ["create", "update", "develop", "build", "notebook", "pipeline"]
+    module: modules/develop.md
+    primarySkill: fabric-devops
+    executionProfile: develop
+  - intent: operate-monitor
+    triggers: ["monitor", "status", "inventory", "jobs", "run history", "health"]
+    module: modules/operate-monitor.md
+    primarySkill: fabric-devops
+    executionProfile: operate-monitor
+  - intent: lakehouse-diagnostics
+    triggers: ["lakehouse", "table load", "shortcut", "failure", "logs", "dependency"]
+    module: modules/lakehouse-diagnostics.md
+    primarySkill: fabric-devops
+    executionProfile: lakehouse-diagnostics
+  - intent: validate
+    triggers: ["validate", "compare", "post deployment", "verification", "prod check", "metadata drift", "schema drift", "broken object validation"]
+    module: modules/validate.md
+    primarySkill: fabric-devops
+    executionProfile: validate
+  - intent: analyze-lineage
+    triggers: ["lineage", "analyze", "trace", "column lineage", "table lineage", "report lineage", "impact analysis", "upstream", "downstream", "data flow", "dependency graph", "metadata", "report metadata", "semantic model metadata", "pbir", "tmdl", "tom", "object usage", "broken visuals", "field mapping"]
+    module: modules/analyze-lineage.md
+    primarySkill: fabric-devops
+    executionProfile: analyze-lineage
+  - intent: ui-ux-changes
+    triggers: ["ui", "ux", "formatting", "font", "spacing", "alignment", "color palette", "theme", "readability", "visual styling", "border", "padding", "report design", "accessibility", "slicer style", "card layout", "title format", "contrast", "design system", "quick iterate", "on the fly", "rapid ux", "fast ux fix", "ux audit and patch"]
+    module: modules/ui-ux-changes.md
+    primarySkill: fabric-devops
+    executionProfile: ui-ux-changes
+  - intent: promote-release
+    triggers: ["promote", "release", "dev to uat", "uat to prod", "deployment pipeline"]
+    module: modules/release-promote.md
+    primarySkill: fabric-devops
+    executionProfile: promote-release
+
+resolutionOrder:
+  - resolveIntent
+  - resolveExecutionProfile
+  - applyEventOverride
+  - checkEngineAvailability
+  - executeModule
+  - formatResponse
+
+guardrails:
+  prodWriteOperationsAllowed: false
+  prodReadOnlyAllowed: true
+  requireEnvironmentConfirmationForWrite: true

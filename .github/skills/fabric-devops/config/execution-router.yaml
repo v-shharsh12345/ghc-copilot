@@ -1,0 +1,133 @@
+version: 1.1
+updatedOn: 2026-02-13
+owner: fabric-devops
+
+engines:
+  - id: fabric-api
+    type: fabric-rest-api
+    strengths:
+      - create-update-delete item operations
+      - job execution and status
+      - deployment pipeline operations
+      - workspace and item metadata retrieval
+    constraints:
+      - requires auth token and permissions
+      - long-running operations require polling
+
+  - id: fabric-cli
+    type: fabric-cli
+    strengths:
+      - scripted operational workflows
+      - repeatable command-line automation
+      - CI/CD friendly execution
+    constraints:
+      - depends on CLI availability and version alignment
+      - command surface may lag latest API features
+
+  - id: fabric-sempy
+    type: sempy-python-sdk
+    strengths:
+      - semantic model introspection and validation
+      - dataframe-friendly analytical comparisons
+      - notebook-native diagnostics and checks
+      - semantic-link-labs report parsing (PBIR) and model metadata extraction (TOM wrappers)
+      - broken object detection and object usage frequency analysis
+    constraints:
+      - requires Python runtime and package availability
+      - best for analytical/validation workloads, not full admin coverage
+
+  - id: context7-guidance
+    type: knowledge-guidance
+    provider: io.github.upstash/context7
+    strengths:
+      - implementation guidance and patterns
+      - fallback advisory for unfamiliar workflows
+      - decision support when tooling is unavailable
+    constraints:
+      - guidance only; not an execution engine
+      - must be paired with API/CLI/SemPy for action
+
+routePolicy:
+  defaultWriteOrder: [fabric-api, fabric-cli]
+  defaultReadOrder: [fabric-api, fabric-cli, fabric-sempy]
+  analyticsOrder: [fabric-sempy, fabric-api, fabric-cli]
+  guidanceFallback: [context7-guidance]
+
+intentEnginePreference:
+  develop:
+    preferred: [fabric-api, fabric-cli]
+    fallback: [context7-guidance]
+  operate-monitor:
+    preferred: [fabric-api, fabric-cli]
+    fallback: [fabric-sempy, context7-guidance]
+  lakehouse-diagnostics:
+    preferred: [fabric-api, fabric-sempy]
+    fallback: [fabric-cli, context7-guidance]
+  validate:
+    preferred: [fabric-sempy, fabric-api]
+    fallback: [fabric-cli, context7-guidance]
+  analyze-lineage:
+    preferred: [fabric-sempy, fabric-api]
+    fallback: [fabric-cli, context7-guidance]
+  ui-ux-changes:
+    preferred: [fabric-api, fabric-sempy]
+    fallback: [fabric-cli, context7-guidance]
+  promote-release:
+    preferred: [fabric-api, fabric-cli]
+    fallback: [context7-guidance]
+
+eventOverrides:
+  - event: semantic-model-parity
+    intent: validate
+    preferred: [fabric-sempy, fabric-api]
+  - event: report-definition-compare
+    intent: validate
+    preferred: [fabric-api, fabric-sempy]
+  - event: lakehouse-load-failure
+    intent: lakehouse-diagnostics
+    preferred: [fabric-api, fabric-sempy, fabric-cli]
+  - event: deployment-promotion
+    intent: promote-release
+    preferred: [fabric-api, fabric-cli]
+  - event: inventory-export
+    intent: operate-monitor
+    preferred: [fabric-cli, fabric-api]
+  - event: column-lineage-trace
+    intent: analyze-lineage
+    preferred: [fabric-sempy, fabric-api]
+  - event: report-lineage-trace
+    intent: analyze-lineage
+    preferred: [fabric-sempy, fabric-api]
+  - event: tenant-wide-lineage
+    intent: analyze-lineage
+    preferred: [fabric-api, fabric-sempy]
+  - event: report-font-audit
+    intent: ui-ux-changes
+    preferred: [fabric-api, fabric-sempy]
+  - event: report-spacing-fix
+    intent: ui-ux-changes
+    preferred: [fabric-api, fabric-sempy]
+  - event: report-color-enforcement
+    intent: ui-ux-changes
+    preferred: [fabric-api, fabric-sempy]
+  - event: report-theme-deployment
+    intent: ui-ux-changes
+    preferred: [fabric-api, fabric-sempy]
+  - event: report-ux-quick-iterate
+    intent: ui-ux-changes
+    preferred: [fabric-api, fabric-sempy]
+  - event: report-ux-audit-patch-loop
+    intent: ui-ux-changes
+    preferred: [fabric-api, fabric-sempy]
+  - event: report-metadata-generation
+    intent: analyze-lineage
+    preferred: [fabric-sempy, fabric-api]
+  - event: semantic-model-metadata-generation
+    intent: analyze-lineage
+    preferred: [fabric-sempy, fabric-api]
+  - event: broken-report-object-detection
+    intent: validate
+    preferred: [fabric-sempy, fabric-api]
+  - event: metadata-parity-validation
+    intent: validate
+    preferred: [fabric-sempy, fabric-api]
