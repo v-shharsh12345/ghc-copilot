@@ -10,10 +10,10 @@ The **fabric-devops** skill is a unified Fabric lifecycle orchestration layer th
 |------------|-------------|
 | **Intent routing** | Config-driven routing maps user requests to the correct module |
 | **Engine selection** | Deterministic selection: Fabric API → CLI → SemPy → Context7 |
-| **Modular architecture** | Separate modules for develop, operate, validate, release, lineage, and UI/UX |
+| **Modular architecture** | Separate modules for develop, operate, validate, release, lineage, and semantic model testing |
 | **Production safety** | Read-only enforcement on PROD; write operations blocked without explicit confirmation |
 | **Lineage analysis** | Table, column, and report-level data lineage tracing via SemPy |
-| **UI/UX changes** | PBIR-native report formatting, spacing, font & color consistency |
+| **Semantic model testing** | Repeatable schema/row count/metric/freshness checks across DEV/UAT/PROD |
 
 ## Module Layout
 
@@ -28,7 +28,7 @@ The **fabric-devops** skill is a unified Fabric lifecycle orchestration layer th
 | `modules/validate.md` | Cross-environment validation |
 | `modules/release-promote.md` | Promotion and release controls |
 | `modules/analyze-lineage.md` | Data lineage analysis |
-| `modules/ui-ux-changes.md` | Report UI/UX formatting |
+| `modules/semantic-model-testing.md` | Semantic model schema/data-quality comparison workflow |
 | `modules/safety-guardrails.md` | Safety rules and protections |
 
 ## Production Safety Rules

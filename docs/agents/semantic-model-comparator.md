@@ -1,11 +1,17 @@
 # Semantic Model Comparator Agent
 
 > **File:** `.github/agents/semantic-model-comparator.agent.md`
-> **Version:** 1.0
+> **Version:** Deprecated
+
+## Status
+
+This agent is deprecated.
+
+Use the `fabric-devops` agent with `modules/semantic-model-testing.md` for all semantic model comparison workflows.
 
 ## Overview
 
-The **Semantic Model Comparator** agent validates Fabric semantic models across DEV, UAT, and PROD environments. It detects schema drift, row count variances, metric discrepancies, and data freshness misalignment — essential for deployment readiness and data quality assurance.
+The legacy **Semantic Model Comparator** capability has been moved under `fabric-devops` to keep Fabric engineering and Fabric testing in one operational path.
 
 ## What It Compares
 
@@ -49,11 +55,11 @@ Add an entry to `dataset-catalog.yaml`:
     workspace: "PROD-Workspace-Name"
 ```
 
-## MCP Servers Required
+## Migration
 
-| Server | Purpose |
-|--------|---------|
-| Power BI Remote | Execute DAX queries against semantic models |
+1. Use `fabric-devops` for semantic model requests.
+2. Keep using `compare-semantic-models` skill assets (`dataset-catalog.yaml`, `comparison-queries.md`).
+3. Route prompts with terms like "schema drift", "metric variance", "row count variance", or "data freshness" to semantic model testing.
 
 ## Example Prompts
 

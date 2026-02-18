@@ -1,11 +1,11 @@
 # Fabric DevOps Agent
 
 > **File:** `.github/agents/fabric-devops.agent.md`
-> **Version:** 1.3 (Feb 2026)
+> **Version:** 1.4 (Feb 2026)
 
 ## Overview
 
-The **Fabric DevOps** agent provides end-to-end lifecycle management for Microsoft Fabric workspaces. It handles development, monitoring, diagnostics, lineage analysis, deployment validation, and CI/CD promotion across DEV, UAT, and PROD environments.
+The **Fabric DevOps** agent provides end-to-end lifecycle management for Microsoft Fabric workspaces. It handles development, monitoring, diagnostics, lineage analysis, semantic model testing, deployment validation, and CI/CD promotion across DEV, UAT, and PROD environments.
 
 ## Architecture
 
@@ -25,9 +25,9 @@ The agent uses a **config-driven intent routing** system:
 | **Operate & Monitor** | `modules/operate-monitor.md` | Inventory items, job status, health trends |
 | **Lakehouse Diagnostics** | `modules/lakehouse-diagnostics.md` | Failure correlation, dependency tracing, root cause |
 | **Analyze Lineage** | `modules/analyze-lineage.md` | Column/table/report lineage graphs with DAX introspection |
+| **Semantic Model Testing** | `modules/semantic-model-testing.md` | Schema drift and data-quality parity checks across environments |
 | **Validate** | `modules/validate.md` | Pre/post-deployment checks with PASS/WARN/FAIL scoring |
 | **CI/CD** | `modules/release-promote.md` | Git sync, deployment pipeline promotion DEV→UAT→PROD |
-| **UI/UX Changes** | `modules/ui-ux-changes.md` | PBIR-native report formatting and visual updates |
 
 ## Safety Guardrails
 
@@ -49,6 +49,7 @@ The agent uses a **config-driven intent routing** system:
 | Server | Purpose |
 |--------|---------|
 | Fabric MCP | OneLake, workspace, item management |
+| Power BI Remote | Semantic model schema and DAX comparisons |
 | Teams | Notifications and alerts |
 | MSSQL | SQL Endpoint queries |
 | Context7 | Library documentation lookup |

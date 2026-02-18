@@ -69,9 +69,6 @@ intentEnginePreference:
   analyze-lineage:
     preferred: [fabric-sempy, fabric-api]
     fallback: [fabric-cli, context7-guidance]
-  ui-ux-changes:
-    preferred: [fabric-api, fabric-sempy]
-    fallback: [fabric-cli, context7-guidance]
   promote-release:
     preferred: [fabric-api, fabric-cli]
     fallback: [context7-guidance]
@@ -100,24 +97,6 @@ eventOverrides:
     preferred: [fabric-sempy, fabric-api]
   - event: tenant-wide-lineage
     intent: analyze-lineage
-    preferred: [fabric-api, fabric-sempy]
-  - event: report-font-audit
-    intent: ui-ux-changes
-    preferred: [fabric-api, fabric-sempy]
-  - event: report-spacing-fix
-    intent: ui-ux-changes
-    preferred: [fabric-api, fabric-sempy]
-  - event: report-color-enforcement
-    intent: ui-ux-changes
-    preferred: [fabric-api, fabric-sempy]
-  - event: report-theme-deployment
-    intent: ui-ux-changes
-    preferred: [fabric-api, fabric-sempy]
-  - event: report-ux-quick-iterate
-    intent: ui-ux-changes
-    preferred: [fabric-api, fabric-sempy]
-  - event: report-ux-audit-patch-loop
-    intent: ui-ux-changes
     preferred: [fabric-api, fabric-sempy]
   - event: report-metadata-generation
     intent: analyze-lineage

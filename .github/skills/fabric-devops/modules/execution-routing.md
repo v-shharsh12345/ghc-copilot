@@ -11,7 +11,7 @@ Select the best execution route for each lifecycle event using available engines
 
 ## Inputs
 
-- Resolved intent (`develop`, `operate-monitor`, `lakehouse-diagnostics`, `validate`, `analyze-lineage`, `ui-ux-changes`, `promote-release`)
+- Resolved intent (`develop`, `operate-monitor`, `lakehouse-diagnostics`, `validate`, `analyze-lineage`, `promote-release`)
 - Event type (if known)
 - Environment and permissions
 - Tool/runtime availability
@@ -28,7 +28,6 @@ Select the best execution route for each lifecycle event using available engines
 ## Selection Criteria
 
 - Prefer deterministic execution over guidance.
-- For `ui-ux-changes` on reports, prefer Fabric API definition round-trip (`getDefinition` and `updateDefinition`) as the write path.
 - Prefer SemPy for semantic/analytical comparisons.
 - Prefer SemPy + semantic-link-labs for metadata-heavy parsing and audit support (PBIR report objects, TOM model inventory, broken-object detection).
 - Prefer API/CLI for deployment and operational actions.

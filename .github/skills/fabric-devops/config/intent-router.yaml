@@ -23,16 +23,16 @@ routes:
     module: modules/validate.md
     primarySkill: fabric-devops
     executionProfile: validate
+  - intent: semantic-model-testing
+    triggers: ["semantic model", "semantic models", "dataset compare", "model compare", "schema drift", "row count variance", "metric variance", "data freshness", "dev vs uat", "uat vs prod", "deployment readiness"]
+    module: modules/semantic-model-testing.md
+    primarySkill: fabric-devops
+    executionProfile: semantic-model-testing
   - intent: analyze-lineage
     triggers: ["lineage", "analyze", "trace", "column lineage", "table lineage", "report lineage", "impact analysis", "upstream", "downstream", "data flow", "dependency graph", "metadata", "report metadata", "semantic model metadata", "pbir", "tmdl", "tom", "object usage", "broken visuals", "field mapping"]
     module: modules/analyze-lineage.md
     primarySkill: fabric-devops
     executionProfile: analyze-lineage
-  - intent: ui-ux-changes
-    triggers: ["ui", "ux", "formatting", "font", "spacing", "alignment", "color palette", "theme", "readability", "visual styling", "border", "padding", "report design", "accessibility", "slicer style", "card layout", "title format", "contrast", "design system", "quick iterate", "on the fly", "rapid ux", "fast ux fix", "ux audit and patch"]
-    module: modules/ui-ux-changes.md
-    primarySkill: fabric-devops
-    executionProfile: ui-ux-changes
   - intent: promote-release
     triggers: ["promote", "release", "dev to uat", "uat to prod", "deployment pipeline"]
     module: modules/release-promote.md

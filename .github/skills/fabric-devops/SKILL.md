@@ -9,9 +9,8 @@ description: Unified Fabric lifecycle orchestration skill that composes existing
 
 | Date | Version | Description |
 | --- | --- | --- |
-| 2026-02-17 | 2.6 | Added rapid UI/UX iteration guidance for server-side UAT report updates, including proven workflow patterns, anti-patterns, and fast validation loop. |
-| 2026-02-17 | 2.5 | Updated UI/UX workflow to API-first report definition round-trip (`getDefinition` → PBIR patch → `updateDefinition`) with explicit Power BI API limitations. |
-| 2026-02-17 | 2.4 | Added ui-ux-changes module for PBIR-native report formatting, spacing, font consistency, and design-system enforcement. |
+| 2026-02-18 | 2.8 | Removed report formatting capability from Fabric DevOps routing and execution profiles. |
+| 2026-02-18 | 2.7 | Added semantic-model-testing module and integrated compare-semantic-models workflow into Fabric lifecycle routing. |
 | 2026-02-13 | 2.3 | Added semantic-link-labs-driven metadata generation patterns for report and semantic model analysis. |
 | 2026-02-13 | 2.2 | Added analyze-lineage module for table, column, and report-level data lineage tracing. |
 | 2026-02-12 | 2.1 | Added engine-aware routing with Fabric API, Fabric CLI, Fabric SemPy, and Context7 guidance fallback. |
@@ -40,9 +39,9 @@ Operate as the single Fabric lifecycle entrypoint. Route requests to focused mod
 | [modules/operate-monitor.md](modules/operate-monitor.md) | Monitoring and run health |
 | [modules/lakehouse-diagnostics.md](modules/lakehouse-diagnostics.md) | Lakehouse incident diagnostics |
 | [modules/validate.md](modules/validate.md) | Cross-environment validation |
+| [modules/semantic-model-testing.md](modules/semantic-model-testing.md) | Repeatable semantic model comparison workflow (schema, row counts, metrics, freshness) |
 | [modules/release-promote.md](modules/release-promote.md) | Promotion and release controls |
 | [modules/analyze-lineage.md](modules/analyze-lineage.md) | Data lineage analysis (table/column/report) |
-| [modules/ui-ux-changes.md](modules/ui-ux-changes.md) | PBIR-native report UI/UX formatting, spacing, font & color consistency |
 | [modules/safety-guardrails.md](modules/safety-guardrails.md) | Safety rules and environment protections |
 
 ## Operating Model
@@ -67,8 +66,8 @@ Operate as the single Fabric lifecycle entrypoint. Route requests to focused mod
 - **Operate/Monitor** → [modules/operate-monitor.md](modules/operate-monitor.md)
 - **Lakehouse Diagnostics** → [modules/lakehouse-diagnostics.md](modules/lakehouse-diagnostics.md)
 - **Validate/Compare** → [modules/validate.md](modules/validate.md)
+- **Semantic Model Testing** → [modules/semantic-model-testing.md](modules/semantic-model-testing.md)
 - **Analyze/Lineage** → [modules/analyze-lineage.md](modules/analyze-lineage.md)
-- **UI/UX Changes** → [modules/ui-ux-changes.md](modules/ui-ux-changes.md)
 - **Promote/Release** → [modules/release-promote.md](modules/release-promote.md)
 
 ## Backward Compatibility

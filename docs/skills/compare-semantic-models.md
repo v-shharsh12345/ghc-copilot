@@ -4,6 +4,8 @@
 
 The **compare-semantic-models** skill compares Fabric semantic models across DEV/UAT/PROD environments for schema drift, data quality differences, and deployment readiness. It uses `#powerbi-remote` tools for direct model-to-model comparison.
 
+This skill is treated as a reusable workflow asset and is executed through the `fabric-devops` semantic model testing module.
+
 ## Key Capabilities
 
 | Capability | Description |

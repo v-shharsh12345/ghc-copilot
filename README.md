@@ -2,6 +2,8 @@
 
 A centralized repository for GitHub Copilot **agents** and **skills** used across MCAPS projects. These agents extend GitHub Copilot Chat in VS Code with domain-specific capabilities for Fabric DevOps, Azure DevOps work-item management, M365 productivity, and data quality validation.
 
+Current architecture uses one orchestrator agent that delegates to specialist subagents.
+
 ---
 
 ## Quick Start
@@ -22,6 +24,7 @@ copilot-agents/
 ├── .gitignore
 └── .github/
     ├── agents/                        ← Agent definitions (*.agent.md)
+    │   ├── orchestrator.agent.md
     │   ├── chief-of-staff.agent.md
     │   ├── fabric-devops.agent.md
     │   └── semantic-model-comparator.agent.md
@@ -50,7 +53,6 @@ copilot-agents/
         │       ├── release-promote.md
         │       ├── runtime-checks.md
         │       ├── safety-guardrails.md
-        │       ├── ui-ux-changes.md
         │       └── validate.md
         └── update-user-story/
             └── SKILL.md
@@ -59,6 +61,25 @@ copilot-agents/
 ---
 
 ## Agents
+
+### 0. Orchestrator (`orchestrator`)
+
+| | |
+|---|---|
+| **File** | `.github/agents/orchestrator.agent.md` |
+| **Purpose** | Single entrypoint that routes requests to the right specialist subagent |
+| **Version** | 1.0 (Feb 2026) |
+
+**What it does:**
+
+- Delegates PM/M365/ADO execution work to `chief-of-staff`
+- Delegates Fabric engineering and testing work to `fabric-devops`
+- Runs subagents in parallel for multi-domain tasks and synthesizes one response
+
+**Subagents managed:**
+
+- `chief-of-staff`
+- `fabric-devops`
 
 ### 1. Chief of Staff (`chief-of-staff`)
 
@@ -119,7 +140,6 @@ copilot-agents/
 | Analyze Lineage | Column/table/report lineage graphs | `modules/analyze-lineage.md` |
 | Validate | Pre/post-deployment checks | `modules/validate.md` |
 | CI/CD | Deploy, test, promote DEV→UAT→PROD | `modules/release-promote.md` |
-| UI/UX Changes | PBIR-native report formatting | `modules/ui-ux-changes.md` |
 
 **Safety:** Write operations are **prohibited** on PROD workspaces. PROD access is read-only.
 
@@ -132,17 +152,13 @@ copilot-agents/
 | | |
 |---|---|
 | **File** | `.github/agents/semantic-model-comparator.agent.md` |
-| **Purpose** | Cross-environment semantic model comparison for data quality and deployment readiness |
-| **Version** | 1.0 |
+| **Purpose** | Legacy compatibility agent (deprecated) |
+| **Version** | Deprecated |
 
-**What it does:**
+**Status:**
 
-- Compares Fabric semantic model schemas across DEV, UAT, and PROD
-- Detects schema drift (new/missing columns, measures, relationships)
-- Validates row counts with configurable tolerance thresholds
-- Compares key aggregated measures across environments
-- Checks data freshness alignment
-- Generates comparison reports with PASS/WARN/FAIL status
+- Semantic model comparison is now part of `fabric-devops` as a repeatable workflow.
+- Keep this agent only for backward compatibility.
 
 **Thresholds:**
 
@@ -219,7 +235,7 @@ Processes documents, conversations, and specifications to update:
 | **Purpose** | Modular lifecycle orchestration skill backing the `fabric-devops` agent |
 | **Version** | 2.6 (Feb 2026) |
 
-Config-driven intent routing system with modules for develop, operate, monitor, validate, lineage analysis, UI/UX changes, and release promotion. See the `config/` and `modules/` subdirectories for routing rules, workspace catalog, and domain-specific procedures.
+Config-driven intent routing system with modules for develop, operate, monitor, validate, lineage analysis, semantic model testing, and release promotion. See the `config/` and `modules/` subdirectories for routing rules, workspace catalog, and domain-specific procedures.
 
 ---
 
@@ -234,6 +250,8 @@ Config-driven intent routing system with modules for develop, operate, monitor, 
 Provides reusable DAX query patterns and a dataset catalog for comparing schemas, row counts, metrics, and data freshness. Supporting files:
 - `dataset-catalog.yaml` — Dataset IDs by environment (DEV/UAT/PROD)
 - `comparison-queries.md` — Reusable DAX patterns for row counts, metrics, freshness, key coverage
+
+This skill is consumed by the `fabric-devops` semantic model testing module.
 
 ---
 

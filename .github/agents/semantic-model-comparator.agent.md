@@ -1,23 +1,41 @@
 ---
 name: semantic-model-comparator
-description: 'Compare semantic model schemas and data quality across DEV/UAT/PROD environments. Identify schema diffs, row count variances, metric discrepancies, and data freshness issues.'
+description: Legacy semantic model comparator agent (deprecated). Use fabric-devops semantic model testing workflow instead.
 argument-hint: 'Dataset name and environments (e.g., "AzureInvestments DEV vs PROD")'
-tools:
-  [vscode/extensions, vscode/getProjectSetupInfo, vscode/installExtension, vscode/newWorkspace, vscode/openSimpleBrowser, vscode/runCommand, vscode/askQuestions, vscode/vscodeAPI, execute/runNotebookCell, execute/testFailure, execute/getTerminalOutput, execute/awaitTerminal, execute/killTerminal, execute/createAndRunTask, execute/runInTerminal, execute/runTests, read/getNotebookSummary, read/problems, read/readFile, read/readNotebookCellOutput, read/terminalSelection, read/terminalLastCommand, agent/runSubagent, edit/createDirectory, edit/createFile, edit/createJupyterNotebook, edit/editFiles, edit/editNotebook, search/changes, search/codebase, search/fileSearch, search/listDirectory, search/searchResults, search/textSearch, search/usages, web/fetch, web/githubRepo, powerbi-remote/ExecuteQuery, powerbi-remote/GetSemanticModelSchema, powerbi-remote/GenerateQuery, powerbi-remote/GetReportMetadata, powerbi-remote/DiscoverArtifacts, todo]
+user-invokable: false
+disable-model-invocation: true
+tools: ['read/readFile', 'search/fileSearch', 'search/textSearch']
 ---
 
-# Semantic Model Comparator
+# Semantic Model Comparator (Deprecated)
 
-Compare Fabric semantic models across environments (DEV → UAT → PROD) to validate data quality, detect schema drift, and ensure deployment readiness.
+This agent remains only for backward compatibility.
 
-## Workflow
+## Migration
 
-1. **Resolve Dataset IDs** from [dataset-catalog.yaml](../skills/semantic-model-comparator/dataset-catalog.yaml)
-2. **Schema Comparison** - Tables, columns, measures, relationships
-3. **Row Count Comparison** - Flag >5% variance as WARNING
-4. **Key Metric Comparison** - Compare aggregated measures with tolerance
-5. **Data Freshness Check** - Validate max dates align across environments
-6. **Generate Report** - Summary with PASS/WARN/FAIL status
+- Route semantic model checks through `fabric-devops`.
+- Use module: `../skills/fabric-devops/modules/semantic-model-testing.md`
+- Use catalog: `../skills/compare-semantic-models/dataset-catalog.yaml`
+
+## Supported Scope
+
+This compatibility agent does not execute comparisons directly.
+It should only return migration guidance to use the Fabric DevOps flow.
+
+## Legacy Scope (Now in Fabric DevOps)
+
+Semantic model testing includes:
+
+1. Schema comparison
+2. Row count variance checks
+3. Key metric variance checks
+4. Data freshness checks
+5. PASS/WARN/FAIL reporting
+
+## Reference
+
+- Fabric DevOps agent: `fabric-devops`
+- Semantic model testing module: `../skills/fabric-devops/modules/semantic-model-testing.md`
 
 ## Dataset Catalog Quick Reference
 

@@ -9,6 +9,7 @@
 | Inventory export and automation-heavy ops | Fabric CLI | Fabric API | Context7 |
 | Lakehouse dependency and load diagnostics | Fabric API | Fabric SemPy | Context7 |
 | Semantic model and metric parity validation | Fabric SemPy | Fabric API | Context7 |
+| Semantic model testing (schema/row count/metrics/freshness) | Power BI Remote | Fabric SemPy | Context7 |
 | Report definition comparison | Fabric API | Fabric SemPy | Context7 |
 | Data lineage analysis (table/column/report) | Fabric SemPy | Fabric API | Context7 |
 | Heavy metadata generation (PBIR + semantic model objects) | Fabric SemPy (semantic-link-labs) | Fabric API | Context7 |
