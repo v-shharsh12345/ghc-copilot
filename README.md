@@ -37,7 +37,7 @@ copilot-agents/
         │   └── SKILL.md
         ├── daily-status-email/
         │   └── SKILL.md
-        ├── fabric-devops/
+        ├── fabric-devops/                  ← Shared resource layer
         │   ├── SKILL.md
         │   ├── config/
         │   │   ├── execution-router.yaml
@@ -53,7 +53,22 @@ copilot-agents/
         │       ├── release-promote.md
         │       ├── runtime-checks.md
         │       ├── safety-guardrails.md
+        │       ├── semantic-model-testing.md
         │       └── validate.md
+        ├── fabric-devops-develop/          ← Capability skill
+        │   └── SKILL.md
+        ├── fabric-devops-operate-monitor/  ← Capability skill
+        │   └── SKILL.md
+        ├── fabric-devops-lakehouse-diagnostics/ ← Capability skill
+        │   └── SKILL.md
+        ├── fabric-devops-validate/         ← Capability skill
+        │   └── SKILL.md
+        ├── fabric-devops-semantic-model-testing/ ← Capability skill
+        │   └── SKILL.md
+        ├── fabric-devops-analyze-lineage/  ← Capability skill
+        │   └── SKILL.md
+        ├── fabric-devops-release-promote/  ← Capability skill
+        │   └── SKILL.md
         └── update-user-story/
             └── SKILL.md
 ```
@@ -68,7 +83,7 @@ copilot-agents/
 |---|---|
 | **File** | `.github/agents/orchestrator.agent.md` |
 | **Purpose** | Single entrypoint that routes requests to the right specialist subagent |
-| **Version** | 1.0 (Feb 2026) |
+| **Version** | 1.1 (Feb 2026) |
 
 **What it does:**
 
@@ -119,27 +134,25 @@ copilot-agents/
 |---|---|
 | **File** | `.github/agents/fabric-devops.agent.md` |
 | **Purpose** | End-to-end Fabric lifecycle management across DEV/UAT/PROD |
-| **Version** | 1.3 (Feb 2026) |
+| **Version** | 1.7 (Feb 2026) |
 
 **What it does:**
 
-- Develops and updates Fabric items (notebooks, pipelines, lakehouses, semantic models, reports)
-- Monitors job execution, pipeline status, and workload health
-- Diagnoses lakehouse dependency failures and run issues
-- Analyzes end-to-end data lineage (table → semantic model → report)
-- Validates deployments across environments with PASS/WARN/FAIL scoring
-- Orchestrates Git sync and deployment pipeline promotion
+- Acts as a thin dispatcher that activates self-declaring capability skills
+- Each capability skill declares its own intent triggers, engine preference, and procedure
+- The agent reads skill declarations and routes to the matching skill
 
-**Lifecycle modes:**
+**Capability skills:**
 
-| Mode | Description | Module |
-|------|-------------|--------|
-| Develop | Create/update items in non-PROD | `modules/develop.md` |
-| Operate & Monitor | Inventory, job status, trends | `modules/operate-monitor.md` |
-| Lakehouse Diagnostics | Failure correlation, dependency tracing | `modules/lakehouse-diagnostics.md` |
-| Analyze Lineage | Column/table/report lineage graphs | `modules/analyze-lineage.md` |
-| Validate | Pre/post-deployment checks | `modules/validate.md` |
-| CI/CD | Deploy, test, promote DEV→UAT→PROD | `modules/release-promote.md` |
+| Skill | Domain |
+|-------|--------|
+| `fabric-devops-develop` | Build/update items |
+| `fabric-devops-operate-monitor` | Inventory, monitoring, health |
+| `fabric-devops-lakehouse-diagnostics` | Lakehouse failure diagnostics |
+| `fabric-devops-validate` | Cross-environment validation |
+| `fabric-devops-semantic-model-testing` | Schema/data parity testing |
+| `fabric-devops-analyze-lineage` | Data lineage analysis |
+| `fabric-devops-release-promote` | Lifecycle promotion |
 
 **Safety:** Write operations are **prohibited** on PROD workspaces. PROD access is read-only.
 
@@ -232,10 +245,28 @@ Processes documents, conversations, and specifications to update:
 | | |
 |---|---|
 | **File** | `.github/skills/fabric-devops/SKILL.md` |
-| **Purpose** | Modular lifecycle orchestration skill backing the `fabric-devops` agent |
-| **Version** | 2.6 (Feb 2026) |
+| **Purpose** | Shared resource layer providing workspace catalog, engine definitions, safety guardrails, and procedure modules |
+| **Version** | 4.0 (Feb 2026) |
 
-Config-driven intent routing system with modules for develop, operate, monitor, validate, lineage analysis, semantic model testing, and release promotion. See the `config/` and `modules/` subdirectories for routing rules, workspace catalog, and domain-specific procedures.
+Houses shared resources consumed by 7 capability skills. Each capability skill self-declares its intent triggers, engine preference, and procedure. The parent skill does not route — it provides:
+- `config/workspace-catalog.yaml` — workspace IDs and connection strings
+- `config/execution-router.yaml` — engine definitions and fallback policy
+- `modules/safety-guardrails.md` — universal safety rules
+- `modules/*.md` — canonical procedure modules consumed by skills
+
+### 4a–4g. Fabric DevOps Capability Skills
+
+| Skill | File | Purpose |
+|-------|------|---------|
+| `fabric-devops-develop` | `.github/skills/fabric-devops-develop/SKILL.md` | Build/update Fabric items in non-PROD |
+| `fabric-devops-operate-monitor` | `.github/skills/fabric-devops-operate-monitor/SKILL.md` | Inventory, job monitoring, health |
+| `fabric-devops-lakehouse-diagnostics` | `.github/skills/fabric-devops-lakehouse-diagnostics/SKILL.md` | Lakehouse failure diagnostics |
+| `fabric-devops-validate` | `.github/skills/fabric-devops-validate/SKILL.md` | Cross-environment validation |
+| `fabric-devops-semantic-model-testing` | `.github/skills/fabric-devops-semantic-model-testing/SKILL.md` | Schema/row count/metric/freshness parity |
+| `fabric-devops-analyze-lineage` | `.github/skills/fabric-devops-analyze-lineage/SKILL.md` | Table/column/report lineage analysis |
+| `fabric-devops-release-promote` | `.github/skills/fabric-devops-release-promote/SKILL.md` | Lifecycle promotion DEV→UAT→PROD |
+
+Each skill is a single SKILL.md file that declares its own intent, engine preference, and procedure reference.
 
 ---
 

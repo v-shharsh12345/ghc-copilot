@@ -1,33 +1,43 @@
 # Fabric DevOps Agent
 
 > **File:** `.github/agents/fabric-devops.agent.md`
-> **Version:** 1.4 (Feb 2026)
+> **Version:** 1.7 (Feb 2026)
 
 ## Overview
 
-The **Fabric DevOps** agent provides end-to-end lifecycle management for Microsoft Fabric workspaces. It handles development, monitoring, diagnostics, lineage analysis, semantic model testing, deployment validation, and CI/CD promotion across DEV, UAT, and PROD environments.
+The **Fabric DevOps** agent is a thin dispatcher for Microsoft Fabric lifecycle management. It activates self-declaring capability skills based on their declared intent triggers, engine preferences, and procedures. Each skill owns its routing — the agent reads skill declarations and dispatches accordingly.
 
 ## Architecture
 
-The agent uses a **config-driven intent routing** system:
+The agent uses a **skill-driven intent routing** system:
 
 1. User prompt arrives
-2. `intent-router.yaml` classifies intent into a lifecycle mode
-3. `execution-router.yaml` determines the execution steps
-4. The appropriate module (`.md` file) provides domain-specific instructions
+2. Agent scores the prompt against each capability skill's declared triggers and weight
+3. The matching skill's engine preference determines the execution engine
+4. The skill's procedure (referencing a parent module) provides domain-specific instructions
 5. `workspace-catalog.yaml` resolves workspace IDs and connection strings
 
-## Lifecycle Modes
+## Capability Skills
 
-| Mode | Module | Description |
-|------|--------|-------------|
-| **Develop** | `modules/develop.md` | Create/update notebooks, pipelines, semantic models in non-PROD |
-| **Operate & Monitor** | `modules/operate-monitor.md` | Inventory items, job status, health trends |
-| **Lakehouse Diagnostics** | `modules/lakehouse-diagnostics.md` | Failure correlation, dependency tracing, root cause |
-| **Analyze Lineage** | `modules/analyze-lineage.md` | Column/table/report lineage graphs with DAX introspection |
-| **Semantic Model Testing** | `modules/semantic-model-testing.md` | Schema drift and data-quality parity checks across environments |
-| **Validate** | `modules/validate.md` | Pre/post-deployment checks with PASS/WARN/FAIL scoring |
-| **CI/CD** | `modules/release-promote.md` | Git sync, deployment pipeline promotion DEV→UAT→PROD |
+| Skill | Domain | Weight |
+|-------|--------|--------|
+| `fabric-devops-develop` | Create/update notebooks, pipelines, semantic models in non-PROD | 1.0 |
+| `fabric-devops-operate-monitor` | Inventory items, job status, health trends | 1.0 |
+| `fabric-devops-lakehouse-diagnostics` | Failure correlation, dependency tracing, root cause | 1.0 |
+| `fabric-devops-analyze-lineage` | Column/table/report lineage graphs with metadata extraction | 1.05 |
+| `fabric-devops-semantic-model-testing` | Schema drift and data-quality parity across environments | 1.1 |
+| `fabric-devops-validate` | Pre/post-deployment checks with PASS/WARN/FAIL scoring | 0.95 |
+| `fabric-devops-release-promote` | Git sync, deployment pipeline promotion DEV→UAT→PROD | 1.0 |
+
+## Shared Resources (in `fabric-devops/`)
+
+| File | Purpose |
+|------|---------|
+| `config/workspace-catalog.yaml` | Maps workspace names to Fabric workspace IDs and SQL connection strings |
+| `config/execution-router.yaml` | Engine definitions, fallback policy, and execution profiles |
+| `config/intent-router.yaml` | Reference index of routes (skills are authoritative) |
+| `modules/safety-guardrails.md` | Safety policy and environment protections |
+| `modules/*.md` | Canonical procedure modules consumed by capability skills |
 
 ## Safety Guardrails
 
@@ -35,14 +45,6 @@ The agent uses a **config-driven intent routing** system:
 - Schema-altering operations require confirmation before execution.
 - `modules/safety-guardrails.md` defines the full safety policy.
 - `modules/runtime-checks.md` validates operations at runtime.
-
-## Configuration Files
-
-| File | Purpose |
-|------|---------|
-| `config/workspace-catalog.yaml` | Maps workspace names to Fabric workspace IDs and SQL connection strings |
-| `config/intent-router.yaml` | Maps natural language intents to lifecycle modes |
-| `config/execution-router.yaml` | Maps modes to execution steps, tools, and modules |
 
 ## MCP Servers Required
 
@@ -61,12 +63,12 @@ Run post-deploy validation on UAT for IncentiveReporting
 Show me the lineage for Claims_Payments table
 What Fabric jobs failed in the last 24 hours?
 Deploy notebook X from DEV to UAT
-Create a new notebook in DEV workspace
+Compare semantic models between DEV and UAT
 ```
 
 ## Key Behaviors
 
+- Skill-driven routing: each skill declares its own triggers, the agent dispatches
 - Environment auto-detection from prompt context (defaults to DEV for writes)
-- Capability matrix checks before attempting operations
 - Structured output with emoji indicators (✅ PASS, ⚠️ WARN, ❌ FAIL)
-- Parallel module loading when operations span multiple modes
+- Parallel skill activation when operations span multiple domains

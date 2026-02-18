@@ -2,34 +2,33 @@
 
 ## Overview
 
-The **fabric-devops** skill is a unified Fabric lifecycle orchestration layer that routes requests to focused modules for building, operating, monitoring, validating, and promoting Fabric artifacts across DEV/UAT/PROD environments.
+The **fabric-devops** skill is a shared resource layer that provides workspace catalog, engine definitions, safety guardrails, and canonical procedure modules consumed by 7 self-declaring capability skills.
 
-## Key Capabilities
+## Architecture
 
-| Capability | Description |
-|------------|-------------|
-| **Intent routing** | Config-driven routing maps user requests to the correct module |
-| **Engine selection** | Deterministic selection: Fabric API → CLI → SemPy → Context7 |
-| **Modular architecture** | Separate modules for develop, operate, validate, release, lineage, and semantic model testing |
-| **Production safety** | Read-only enforcement on PROD; write operations blocked without explicit confirmation |
-| **Lineage analysis** | Table, column, and report-level data lineage tracing via SemPy |
-| **Semantic model testing** | Repeatable schema/row count/metric/freshness checks across DEV/UAT/PROD |
+Each capability skill self-declares its intent triggers, engine preference, and procedure. The parent `fabric-devops` skill does not route — it provides shared resources. The `fabric-devops` agent reads skill declarations and dispatches accordingly.
 
-## Module Layout
+## Capability Skills
 
-| Module | Purpose |
-|--------|---------|
-| `config/intent-router.yaml` | Intent-to-module routing rules |
-| `config/execution-router.yaml` | Engine selection and fallback policy |
+| Skill | Domain | Declared Weight |
+|-------|--------|----------------|
+| `fabric-devops-develop` | Build/update items | 1.0 |
+| `fabric-devops-operate-monitor` | Inventory, monitoring, health | 1.0 |
+| `fabric-devops-lakehouse-diagnostics` | Lakehouse failure diagnostics | 1.0 |
+| `fabric-devops-validate` | Cross-environment validation | 0.95 |
+| `fabric-devops-semantic-model-testing` | Schema/data parity testing | 1.1 |
+| `fabric-devops-analyze-lineage` | Data lineage analysis | 1.05 |
+| `fabric-devops-release-promote` | Lifecycle promotion | 1.0 |
+
+## Shared Resources
+
+| Resource | Purpose |
+|----------|---------|
 | `config/workspace-catalog.yaml` | Central workspace/environment metadata |
-| `modules/develop.md` | Build/update flows |
-| `modules/operate-monitor.md` | Monitoring and run health |
-| `modules/lakehouse-diagnostics.md` | Lakehouse incident diagnostics |
-| `modules/validate.md` | Cross-environment validation |
-| `modules/release-promote.md` | Promotion and release controls |
-| `modules/analyze-lineage.md` | Data lineage analysis |
-| `modules/semantic-model-testing.md` | Semantic model schema/data-quality comparison workflow |
+| `config/execution-router.yaml` | Engine definitions and fallback policy |
+| `config/intent-router.yaml` | Reference index (skills are authoritative) |
 | `modules/safety-guardrails.md` | Safety rules and protections |
+| `modules/*.md` | Canonical procedure modules |
 
 ## Production Safety Rules
 

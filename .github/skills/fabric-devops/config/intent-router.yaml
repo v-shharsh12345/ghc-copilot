@@ -1,46 +1,76 @@
-version: 1.1
-updatedOn: 2026-02-13
+version: 1.3
+updatedOn: 2026-02-18
 owner: fabric-devops
+
+# NOTE: Capability skills are the authoritative source for intent declarations.
+# This file serves as a reference index. Each skill's SKILL.md declares its own
+# triggers, weight, and minimum confidence. The agent reads skills directly.
+
+routing:
+  strategy: weighted-intent-match
+  minimumConfidence: 0.45
+  ambiguityMargin: 0.15
+  allowMultiIntentWhenIndependent: true
 
 routes:
   - intent: develop
     triggers: ["create", "update", "develop", "build", "notebook", "pipeline"]
+    primarySkill: fabric-devops-develop
     module: modules/develop.md
-    primarySkill: fabric-devops
     executionProfile: develop
+    weight: 1.0
   - intent: operate-monitor
     triggers: ["monitor", "status", "inventory", "jobs", "run history", "health"]
+    primarySkill: fabric-devops-operate-monitor
     module: modules/operate-monitor.md
-    primarySkill: fabric-devops
     executionProfile: operate-monitor
+    weight: 1.0
   - intent: lakehouse-diagnostics
     triggers: ["lakehouse", "table load", "shortcut", "failure", "logs", "dependency"]
+    primarySkill: fabric-devops-lakehouse-diagnostics
     module: modules/lakehouse-diagnostics.md
-    primarySkill: fabric-devops
     executionProfile: lakehouse-diagnostics
+    weight: 1.0
   - intent: validate
     triggers: ["validate", "compare", "post deployment", "verification", "prod check", "metadata drift", "schema drift", "broken object validation"]
+    primarySkill: fabric-devops-validate
     module: modules/validate.md
-    primarySkill: fabric-devops
     executionProfile: validate
+    weight: 0.95
   - intent: semantic-model-testing
     triggers: ["semantic model", "semantic models", "dataset compare", "model compare", "schema drift", "row count variance", "metric variance", "data freshness", "dev vs uat", "uat vs prod", "deployment readiness"]
+    primarySkill: fabric-devops-semantic-model-testing
     module: modules/semantic-model-testing.md
-    primarySkill: fabric-devops
     executionProfile: semantic-model-testing
+    weight: 1.1
   - intent: analyze-lineage
     triggers: ["lineage", "analyze", "trace", "column lineage", "table lineage", "report lineage", "impact analysis", "upstream", "downstream", "data flow", "dependency graph", "metadata", "report metadata", "semantic model metadata", "pbir", "tmdl", "tom", "object usage", "broken visuals", "field mapping"]
+    primarySkill: fabric-devops-analyze-lineage
     module: modules/analyze-lineage.md
-    primarySkill: fabric-devops
     executionProfile: analyze-lineage
+    weight: 1.05
   - intent: promote-release
     triggers: ["promote", "release", "dev to uat", "uat to prod", "deployment pipeline"]
+    primarySkill: fabric-devops-release-promote
     module: modules/release-promote.md
-    primarySkill: fabric-devops
     executionProfile: promote-release
+    weight: 1.0
+
+ambiguityRules:
+  - intents: [validate, semantic-model-testing]
+    prefer: semantic-model-testing
+    whenPromptContainsAny: ["schema drift", "row count", "metric variance", "freshness", "dataset"]
+  - intents: [validate, analyze-lineage]
+    prefer: analyze-lineage
+    whenPromptContainsAny: ["lineage", "upstream", "downstream", "impact", "pbir", "tmdl"]
+  - intents: [develop, promote-release]
+    prefer: promote-release
+    whenPromptContainsAny: ["deploy", "promote", "pipeline stage", "dev to uat", "uat to prod"]
 
 resolutionOrder:
   - resolveIntent
+  - applyRouteWeight
+  - applyAmbiguityRules
   - resolveExecutionProfile
   - applyEventOverride
   - checkEngineAvailability

@@ -1,5 +1,5 @@
-version: 1.1
-updatedOn: 2026-02-13
+version: 1.3
+updatedOn: 2026-02-18
 owner: fabric-devops
 
 engines:
@@ -70,6 +70,36 @@ intentEnginePreference:
     preferred: [fabric-sempy, fabric-api]
     fallback: [fabric-cli, context7-guidance]
   promote-release:
+    preferred: [fabric-api, fabric-cli]
+    fallback: [context7-guidance]
+
+executionProfiles:
+  develop:
+    primarySkill: fabric-devops-develop
+    preferred: [fabric-api, fabric-cli]
+    fallback: [context7-guidance]
+  operate-monitor:
+    primarySkill: fabric-devops-operate-monitor
+    preferred: [fabric-api, fabric-cli]
+    fallback: [fabric-sempy, context7-guidance]
+  lakehouse-diagnostics:
+    primarySkill: fabric-devops-lakehouse-diagnostics
+    preferred: [fabric-api, fabric-sempy]
+    fallback: [fabric-cli, context7-guidance]
+  validate:
+    primarySkill: fabric-devops-validate
+    preferred: [fabric-sempy, fabric-api]
+    fallback: [fabric-cli, context7-guidance]
+  semantic-model-testing:
+    primarySkill: fabric-devops-semantic-model-testing
+    preferred: [powerbi-remote, fabric-sempy]
+    fallback: [fabric-api, context7-guidance]
+  analyze-lineage:
+    primarySkill: fabric-devops-analyze-lineage
+    preferred: [fabric-sempy, fabric-api]
+    fallback: [fabric-cli, context7-guidance]
+  promote-release:
+    primarySkill: fabric-devops-release-promote
     preferred: [fabric-api, fabric-cli]
     fallback: [context7-guidance]
 
