@@ -1,0 +1,101 @@
+{
+  "servers": {
+    "microsoft/azure-devops-mcp": {
+      "type": "stdio",
+      "command": "npx",
+      "args": [
+        "-y",
+        "@azure-devops/mcp@latest",
+        "${input:ado_org}",
+        "-d",
+        "${input:ado_domain}",
+        "-d",
+        "${input:ado_team1}"
+      ]
+    },
+    "microsoft/playwright-mcp": {
+      "type": "stdio",
+      "command": "npx",
+      "args": ["-y", "@playwright/mcp@latest"]
+    },
+    "workiq": {
+      "type": "stdio",
+      "command": "npx",
+      "args": ["-y", "@microsoft/workiq", "mcp"]
+    },
+    "io.github.upstash/context7": {
+      "type": "stdio",
+      "command": "npx",
+      "args": ["-y", "@upstash/context7-mcp@1.0.31"],
+      "env": {
+        "CONTEXT7_API_KEY": "${input:CONTEXT7_API_KEY}"
+      }
+    },
+    "mcp_MailTools": {
+      "type": "http",
+      "url": "https://agent365.svc.cloud.microsoft/mcp/environments/${input:environment_id}/servers/mcp_MailTools"
+    },
+    "mcp_CalendarTools": {
+      "type": "http",
+      "url": "https://agent365.svc.cloud.microsoft/mcp/environments/${input:environment_id}/servers/mcp_CalendarTools"
+    },
+    "mcp_TeamsServer": {
+      "type": "http",
+      "url": "https://agent365.svc.cloud.microsoft/mcp/environments/${input:environment_id}/servers/mcp_TeamsServer"
+    },
+    "mcp_M365Copilot": {
+      "type": "http",
+      "url": "https://agent365.svc.cloud.microsoft/mcp/environments/${input:environment_id}/servers/mcp_M365Copilot"
+    },
+    "mcp_WordServer": {
+      "type": "http",
+      "url": "https://agent365.svc.cloud.microsoft/mcp/environments/${input:environment_id}/servers/mcp_WordServer"
+    },
+    "nl2dab-mcp-server": {
+      "type": "http",
+      "url": "https://incentivedatatoolcontainer.whitebush-b1573f7b.eastus2.azurecontainerapps.io/mcp"
+    },
+    "powerbi-remote": {
+      "type": "http",
+      "url": "https://api.fabric.microsoft.com/v1/mcp/powerbi"
+    },
+    "microsoftdocs/mcp": {
+      "type": "http",
+      "url": "https://learn.microsoft.com/api/mcp"
+    }
+  },
+  "inputs": [
+    {
+      "id": "ado_org",
+      "type": "promptString",
+      "description": "Azure DevOps organization name (e.g., msft-gps-ip)",
+      "password": false
+    },
+    {
+      "id": "ado_domain",
+      "type": "promptString",
+      "description": "ADO domains to enable (comma-separated): core, work, work-items, search, test-plans, repositories, wiki, pipelines, advanced-security",
+      "password": false
+    },
+    {
+      "id": "ado_team1",
+      "type": "promptString",
+      "description": "Primary team name in Azure DevOps",
+      "password": false,
+      "default": "Data and Reporting POD"
+    },
+    {
+      "id": "environment_id",
+      "type": "promptString",
+      "description": "Power Platform Environment ID (find in Power Platform admin center)",
+      "password": false,
+      "default": "64ccd25c-fa91-e1d7-a91b-eda82798ec07"
+    },
+    {
+      "id": "CONTEXT7_API_KEY",
+      "type": "promptString",
+      "description": "Context7 API key for library documentation lookup (get from https://context7.com)",
+      "password": true
+    }
+  ]
+}

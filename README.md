@@ -8,11 +8,50 @@ Current architecture uses one orchestrator agent that delegates to specialist su
 
 ## Quick Start
 
-1. **Clone** this repo into your VS Code workspace (or add as a workspace folder).
-2. Copilot will auto-discover agents from `.github/agents/` and skills from `.github/skills/`.
-3. Invoke an agent by name in Copilot Chat — e.g., `@chief-of-staff Daily triage`.
+### Prerequisites
 
-> **Prerequisite**: The MCP servers referenced by each agent (Azure DevOps, WorkIQ, Fabric, Mail, Teams, Power BI Remote) must be configured in your VS Code `settings.json`. See [MCP Server Setup](#mcp-server-setup) below.
+| Requirement | Purpose | Install |
+|-------------|---------|---------|
+| **Node.js 18+** | Runs npm-based MCP servers via npx | [nodejs.org](https://nodejs.org) (LTS) |
+| **Azure CLI** | Auth for Fabric and Power BI APIs | [Install Azure CLI](https://learn.microsoft.com/cli/azure/install-azure-cli) |
+| **VS Code** | Host for Copilot agents | [code.visualstudio.com](https://code.visualstudio.com) |
+| **GitHub Copilot extension** | Runs agents and skills | `code --install-extension GitHub.copilot` |
+| **GitHub Copilot Chat extension** | Chat interface for agents | `code --install-extension GitHub.copilot-chat` |
+| **SQL Server extension** | MSSQL tool for Fabric DevOps | `code --install-extension ms-mssql.mssql` |
+
+### Setup (New User)
+
+```powershell
+# 1. Clone the repo
+git clone <repo-url> copilot-agents
+cd copilot-agents
+
+# 2. Run the setup script (checks prerequisites, pre-caches MCP packages)
+.\setup.ps1
+
+# 3. Open in VS Code
+code .
+```
+
+The setup script will:
+- Verify Node.js, npm, and Azure CLI are installed
+- Check that required VS Code extensions are present
+- Pre-cache all npm-based MCP server packages (`@azure-devops/mcp`, `@playwright/mcp`, `@microsoft/workiq`, `@upstash/context7-mcp`)
+- Validate the workspace MCP configuration
+
+### What Happens After Setup
+
+1. VS Code auto-discovers MCP servers from `.vscode/mcp.json` (workspace-level config).
+2. Copilot auto-discovers agents from `.github/agents/` and skills from `.github/skills/`.
+3. On **first use**, VS Code will prompt you for configurable values:
+   - **Azure DevOps org** — your ADO organization name
+   - **ADO domains** — which domains to enable (core, work-items, repositories, etc.)
+   - **Team name** — your primary ADO team
+   - **Power Platform Environment ID** — for M365 MCP tools
+   - **Context7 API key** — for library documentation lookup
+4. Invoke an agent in Copilot Chat — e.g., `@orchestrator Daily triage`.
+
+> **Note**: HTTP-based MCP servers (Power BI Remote, Microsoft Docs, M365 tools) require no local install — they connect directly to cloud endpoints. The npm-based servers are downloaded automatically by npx on first use if not pre-cached.
 
 ---
 
@@ -21,7 +60,10 @@ Current architecture uses one orchestrator agent that delegates to specialist su
 ```
 copilot-agents/
 ├── README.md                          ← You are here
+├── setup.ps1                          ← Run after cloning to install dependencies
 ├── .gitignore
+├── .vscode/
+│   └── mcp.json                       ← Workspace-level MCP server config (auto-discovered)
 └── .github/
     ├── agents/                        ← Agent definitions (*.agent.md)
     │   ├── orchestrator.agent.md
@@ -288,18 +330,44 @@ This skill is consumed by the `fabric-devops` semantic model testing module.
 
 ## MCP Server Setup
 
-The agents depend on external MCP servers for tool access. Add the following to your VS Code `settings.json` under `mcp.servers`:
+All MCP servers are configured in [.vscode/mcp.json](.vscode/mcp.json) at the workspace level — **no manual `settings.json` editing is needed**. The setup script pre-caches npm packages so first-run is faster.
 
-| MCP Server | Purpose | Used By |
-|------------|---------|---------|
-| **Azure DevOps** (`microsoft/azure-devops-mcp`) | Work items, repos, pipelines, wikis | Chief of Staff, Create Task, Update User Story |
-| **WorkIQ** (`workiq`) | M365 search (Outlook, Teams, Calendar) | Chief of Staff, Daily Status Email, Create Task |
-| **Mail Tools** (`mcp_mailtools`) | Send/reply/forward Outlook emails | Chief of Staff, Daily Status Email |
-| **Fabric MCP** (`fabric-mcp`) | OneLake, Fabric APIs, workspace management | Fabric DevOps |
-| **Teams** (`mcp_teamsserver`) | Teams chats and channels | Fabric DevOps, Create Task |
-| **Power BI Remote** (`powerbi-remote`) | Semantic model queries and schema | Semantic Model Comparator |
-| **MSSQL** (`ms-mssql.mssql`) | SQL Server queries | Fabric DevOps |
-| **Context7** (`io.github.upstash/context7`) | Library documentation lookup | Fabric DevOps |
+### Server Reference
+
+| MCP Server | Type | Package / URL | Used By |
+|------------|------|---------------|---------|
+| **Azure DevOps** (`microsoft/azure-devops-mcp`) | stdio (npx) | `@azure-devops/mcp@latest` | Chief of Staff, Create Task, Update User Story |
+| **Playwright** (`microsoft/playwright-mcp`) | stdio (npx) | `@playwright/mcp@latest` | Browser automation, Power BI report testing |
+| **WorkIQ** (`workiq`) | stdio (npx) | `@microsoft/workiq` | Chief of Staff, Daily Status Email, Create Task |
+| **Context7** (`io.github.upstash/context7`) | stdio (npx) | `@upstash/context7-mcp@1.0.31` | Fabric DevOps (library docs lookup) |
+| **Mail Tools** (`mcp_MailTools`) | http | `agent365.svc.cloud.microsoft` | Chief of Staff, Daily Status Email |
+| **Calendar Tools** (`mcp_CalendarTools`) | http | `agent365.svc.cloud.microsoft` | Chief of Staff |
+| **Teams** (`mcp_TeamsServer`) | http | `agent365.svc.cloud.microsoft` | Fabric DevOps, Create Task |
+| **M365 Copilot** (`mcp_M365Copilot`) | http | `agent365.svc.cloud.microsoft` | Chief of Staff |
+| **Word** (`mcp_WordServer`) | http | `agent365.svc.cloud.microsoft` | Chief of Staff |
+| **NL2DAB** (`nl2dab-mcp-server`) | http | Azure Container Apps endpoint | Natural language to data queries |
+| **Power BI Remote** (`powerbi-remote`) | http | `api.fabric.microsoft.com` | Semantic Model Comparator, Fabric DevOps |
+| **Microsoft Docs** (`microsoftdocs/mcp`) | http | `learn.microsoft.com` | Fabric DevOps (documentation search) |
+
+### Configurable Inputs
+
+These values are prompted on first use (stored per-workspace by VS Code):
+
+| Input | Description | Default |
+|-------|-------------|---------|
+| `ado_org` | Azure DevOps organization name | _(none — must provide)_ |
+| `ado_domain` | ADO domains to enable | _(none — must provide)_ |
+| `ado_team1` | Primary team name | `Data and Reporting POD` |
+| `environment_id` | Power Platform Environment ID | `64ccd25c-fa91-e1d7-a91b-eda82798ec07` |
+| `CONTEXT7_API_KEY` | Context7 API key (secret) | _(none — must provide)_ |
+
+### VS Code Extensions Required
+
+| Extension | ID | Purpose |
+|-----------|----|---------|
+| GitHub Copilot | `GitHub.copilot` | Agent execution engine |
+| GitHub Copilot Chat | `GitHub.copilot-chat` | Chat interface for invoking agents |
+| SQL Server (mssql) | `ms-mssql.mssql` | Provides MSSQL MCP tools for Fabric DevOps |
 
 ---
 
