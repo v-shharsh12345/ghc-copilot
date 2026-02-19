@@ -100,7 +100,7 @@ foreach ($pkg in $packages) {
 }
 
 # ── 5. Verify .vscode/mcp.json ───────────────────────────
-Write-Host "[5/5] Verifying workspace MCP configuration..." -ForegroundColor Yellow
+Write-Host "[5/6] Verifying workspace MCP configuration..." -ForegroundColor Yellow
 
 $mcpJsonPath = Join-Path $PSScriptRoot ".vscode" "mcp.json"
 if (Test-Path $mcpJsonPath) {
@@ -116,6 +116,25 @@ if (Test-Path $mcpJsonPath) {
 }
 
 # ── Summary ───────────────────────────────────────────────
+
+# ── 6. Create user-context.yaml from template if needed ──
+Write-Host "[6/6] Checking user context configuration..." -ForegroundColor Yellow
+
+$configDir = Join-Path $PSScriptRoot "config"
+$templatePath = Join-Path $configDir "user-context.template.yaml"
+$userContextPath = Join-Path $configDir "user-context.yaml"
+
+if (Test-Path $userContextPath) {
+    Write-Host "  config/user-context.yaml exists" -ForegroundColor Green
+} elseif (Test-Path $templatePath) {
+    Copy-Item $templatePath $userContextPath
+    Write-Host "  Created config/user-context.yaml from template" -ForegroundColor Green
+    Write-Host "  ACTION REQUIRED: Edit config/user-context.yaml with your values" -ForegroundColor DarkYellow
+} else {
+    Write-Host "  WARNING: config/user-context.template.yaml not found" -ForegroundColor DarkYellow
+}
+
+# ── Summary ───────────────────────────────────────────────
 Write-Host ""
 Write-Host "========================================" -ForegroundColor Cyan
 Write-Host "  Setup Complete" -ForegroundColor Cyan
@@ -123,10 +142,13 @@ Write-Host "========================================" -ForegroundColor Cyan
 Write-Host ""
 Write-Host "Next steps:" -ForegroundColor White
 Write-Host "  1. Open this folder in VS Code (or add as workspace folder)" -ForegroundColor White
-Write-Host "  2. VS Code will auto-discover MCP servers from .vscode/mcp.json" -ForegroundColor White
-Write-Host "  3. On first use, you'll be prompted for:" -ForegroundColor White
+Write-Host "  2. Edit config/user-context.yaml with your personal and project details" -ForegroundColor White
+Write-Host "  3. Fill in workspace GUIDs in .github/skills/fabric-devops/config/workspace-catalog.yaml" -ForegroundColor White
+Write-Host "  4. Fill in dataset GUIDs in .github/skills/compare-semantic-models/dataset-catalog.yaml" -ForegroundColor White
+Write-Host "  5. VS Code will auto-discover MCP servers from .vscode/mcp.json" -ForegroundColor White
+Write-Host "  6. On first use, you'll be prompted for:" -ForegroundColor White
 Write-Host "     - Azure DevOps org name and domain" -ForegroundColor Gray
 Write-Host "     - Power Platform Environment ID" -ForegroundColor Gray
 Write-Host "     - Context7 API key" -ForegroundColor Gray
-Write-Host "  4. Invoke agents in Copilot Chat: @orchestrator, @chief-of-staff, @fabric-devops" -ForegroundColor White
+Write-Host "  7. Invoke agents in Copilot Chat: @orchestrator, @chief-of-staff, @fabric-devops" -ForegroundColor White
 Write-Host ""

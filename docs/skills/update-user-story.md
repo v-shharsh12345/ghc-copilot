@@ -2,7 +2,7 @@
 
 ## Overview
 
-The **update-user-story** skill updates Azure DevOps user stories in the **OneMW** project based on referenced materials — documents, conversations, specifications, and meeting notes. It enriches stories with detailed descriptions, acceptance criteria, comments, and tags.
+The **update-user-story** skill updates Azure DevOps user stories in the configured ADO project based on referenced materials — documents, conversations, specifications, and meeting notes. It enriches stories with detailed descriptions, acceptance criteria, comments, and tags.
 
 ## Key Capabilities
 

@@ -18,8 +18,8 @@ The **daily-status-email** skill generates a professional end-of-day status emai
 
 | Setting | Value |
 |---------|-------|
-| Default Recipient | `arnavl@maqsoftware.com` |
-| Subject Format | `Arnav Loonker: Daily Status Update as of [MM/DD/YYYY]` |
+| Default Recipient | Resolve from `config/user-context.yaml` → `statusEmail.recipient` |
+| Subject Format | `{statusEmail.subjectPrefix}: Daily Status Update as of [MM/DD/YYYY]` |
 | Auto-Send | Enabled |
 
 ## Example Invocations

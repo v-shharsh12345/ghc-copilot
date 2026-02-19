@@ -1,0 +1,78 @@
+# =============================================================================
+# User Context Configuration
+# =============================================================================
+# Copy this file to config/user-context.yaml and fill in your values.
+# config/user-context.yaml is gitignored and will NOT be committed.
+#
+# This file is the single source of truth for all personal and project-specific
+# context used by agents and skills. Agents read this file at runtime to resolve
+# names, emails, ADO projects, team members, and business domain terminology.
+# =============================================================================
+
+version: 1.0
+
+# ── Personal Identity ─────────────────────────────────────
+user:
+  displayName: "<YOUR_DISPLAY_NAME>"            # e.g., "Jane Doe"
+  email: "<YOUR_EMAIL>"                         # e.g., "janedoe@contoso.com"
+
+# ── Status Email Configuration ────────────────────────────
+statusEmail:
+  recipient: "<MANAGER_EMAIL>"                  # e.g., "manager@contoso.com"
+  subjectPrefix: "<YOUR_NAME>"                  # Used in: "<Name>: Daily Status Update as of ..."
+  autoSend: true
+  sections:
+    - name: "<SECTION_1_NAME>"                  # e.g., "Data Engineering POD"
+      bulletCount: 6
+      topics:
+        - "<topic_1>"                           # e.g., "data pipeline optimization"
+        - "<topic_2>"                           # e.g., "schema migration"
+    - name: "<SECTION_2_NAME>"                  # e.g., "Analytics POD"
+      bulletCount: 6
+      topics:
+        - "<topic_1>"
+        - "<topic_2>"
+
+# ── Azure DevOps ──────────────────────────────────────────
+ado:
+  organization: "<ADO_ORG>"                     # e.g., "dev.azure.com/contoso" or "contoso.visualstudio.com"
+  projects:
+    taskCreation:
+      name: "<TASK_PROJECT>"                    # e.g., "MyProject-DevOps"
+      defaultAreaPath: "<AREA_PATH>"            # e.g., "MyProject-DevOps\\Team A"
+    userStories:
+      name: "<STORY_PROJECT>"                   # e.g., "EnterpriseProject"
+      defaultAreaPath: "<AREA_PATH>"            # e.g., "EnterpriseProject\\Engineering"
+  team: "<TEAM_NAME>"                           # e.g., "Data Engineering Team"
+  defaultParentWorkItemId: null                 # e.g., 12345 (Ad-hoc parent in current sprint)
+
+# ── Team Members (used in examples and assignments) ───────
+team:
+  members:
+    - "<MEMBER_1>"                              # e.g., "Alice"
+    - "<MEMBER_2>"                              # e.g., "Bob"
+    - "<MEMBER_3>"                              # e.g., "Carol"
+
+# ── Business Domain (project-specific terminology) ────────
+domain:
+  shortName: "<DOMAIN>"                         # e.g., "Analytics", "DataPlatform", "Finance"
+  exampleEntities:
+    factTables: ["FactOrders", "FactRevenue"]
+    dimTables: ["DimCustomer", "DimProduct", "DimDate"]
+    reports: ["Sales Dashboard", "Executive Summary"]
+    pipelines: ["Master_Refresh", "Daily_ETL"]
+    lakehouses: ["MainLakehouse", "StagingLakehouse"]
+    semanticModels: ["SalesModel", "FinanceModel"]
+
+# ── Infrastructure ────────────────────────────────────────
+infrastructure:
+  powerPlatformEnvironmentId: "<GUID>"          # From Power Platform admin center
+  customMcpEndpoints:                           # Optional project-specific MCP servers
+    # Uncomment and fill in if you use these:
+    # - name: "nl2dab"
+    #   type: "http"
+    #   url: "<AZURE_CONTAINER_APPS_URL>/mcp"
+    # - name: "excalidraw"
+    #   type: "stdio"
+    #   command: "node"
+    #   args: ["<PATH_TO_EXCALIDRAW_MCP>/dist/index.js", "--stdio"]

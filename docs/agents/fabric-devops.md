@@ -59,8 +59,8 @@ The agent uses a **skill-driven intent routing** system:
 ## Example Prompts
 
 ```
-Run post-deploy validation on UAT for IncentiveReporting
-Show me the lineage for Claims_Payments table
+Run post-deploy validation on UAT for the main Lakehouse
+Show me the lineage for Fact_Payments table
 What Fabric jobs failed in the last 24 hours?
 Deploy notebook X from DEV to UAT
 Compare semantic models between DEV and UAT

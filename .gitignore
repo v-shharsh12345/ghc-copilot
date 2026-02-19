@@ -8,6 +8,9 @@ desktop.ini
 *.swp
 *.swo
 
-# Sensitive config (uncomment if needed)
+# User-specific config (created from .template.yaml files)
+config/user-context.yaml
+
+# Sensitive config
 # **/*-secrets.yaml
 # **/*-credentials.yaml

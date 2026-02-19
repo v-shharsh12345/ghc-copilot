@@ -64,11 +64,11 @@ The **Chief of Staff** is a personal productivity and execution agent that triag
 
 ## Configuration
 
-The agent uses the following ADO defaults (configurable in the agent file):
+The agent uses the following ADO defaults (configurable via `config/user-context.yaml`):
 
 | Setting | Default |
-|---------|---------|
-| Organization | `msit.visualstudio.com` |
-| Project | `OneMW` |
-| Area Path | `OneMW\MCAPS\Partner & Customer Programs\US SMS&P\Data & AI\Data_Reporting` |
+|---------|--------|
+| Organization | Resolve from `config/user-context.yaml` → `ado.organization` |
+| Project | Resolve from `config/user-context.yaml` → `ado.projects` |
+| Area Path | Resolve from `config/user-context.yaml` → `ado.projects.*.defaultAreaPath` |
 | Work Item Types | User Story, Task, Bug |

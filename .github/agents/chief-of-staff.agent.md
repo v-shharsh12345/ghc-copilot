@@ -96,9 +96,11 @@ Configuration precedence:
 
 ## 6. ADO Defaults
 
+> **Configuration:** Read `config/user-context.yaml` at runtime to resolve ADO project, area path, and team defaults.
+
 | Field | Default |
-|-------|---------|
-| Project | `PartnerIncentivePlatform-DevOps` |
+|-------|--------|
+| Project | Resolve from `config/user-context.yaml` → `ado.projects.taskCreation.name` |
 | Work Item Types | User Story, Task, Bug |
 | Iteration | Resolve dynamically from team current iteration |
 | Priority | 2 |
@@ -124,11 +126,11 @@ Configuration precedence:
 
 When drafting status emails, use this two-section format:
 
-### Section 1: Data & Reporting (ABS) POD
-- 6 bullet points covering: ABS data engineering, bug fixes, schema changes, Fabric migration, pipeline optimization, Copilot reporting
+### Section 1: Primary POD
+- 6 bullet points covering your primary team's key workstreams (resolve from `config/user-context.yaml` → `statusEmail.sections[0]`)
 
-### Section 2: Partner Performance Measurement POD
-- 6 bullet points covering: EASA reporting, xCSA risks, Sentinel Accelerate, partner eligibility, conversion rates, ARR/ACR alignment
+### Section 2: Secondary POD
+- 6 bullet points covering your secondary team's key workstreams (resolve from `config/user-context.yaml` → `statusEmail.sections[1]`)
 
 ### Format Guidelines:
 - Brief, bullet-driven, action-oriented communication style
@@ -157,8 +159,8 @@ When drafting status emails, use this two-section format:
 2. Query current iteration
 4. Create User Story with:
    - Title: "Copilot MAU dashboard"
-   - Area Path: `PartnerIncentivePlatform-DevOps\ABS Reporting`
-   - Parent: 93721
+   - Area Path: Inherited from Ad-hoc parent or resolved from `config/user-context.yaml`
+   - Parent: Resolved from Ad-hoc parent in current iteration
    - Assigned To: _(current user)_
 5. Return work item ID and link
 

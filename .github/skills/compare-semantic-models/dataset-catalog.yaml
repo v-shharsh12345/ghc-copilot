@@ -1,133 +1,51 @@
 # Semantic Model Comparator - Dataset Catalog
-# Version: 2026-01-30
 # Purpose: Map dataset names to IDs per environment for cross-environment comparison
+#
+# Fill in your dataset GUIDs below. Add one entry per semantic model you want
+# to compare across environments.
 
 metadata:
-  version: "2026-01-30"
-  owner: "MCAPS Incentives"
+  version: "1.0"
+  owner: "<YOUR_TEAM>"
   notes: "Replace <PLACEHOLDER> values with actual dataset GUIDs as environments are provisioned."
 
 # =============================================================================
 # DATASETS BY ENVIRONMENT
 # =============================================================================
-# Usage: Look up datasetId by name + environment before querying
+# Add your datasets below. Use the structure shown in the examples.
 
 datasets:
-  AzureInvestments:
-    summary: "Azure Investments: accounts, partners, projects, claims, ACR, geography, pillars."
-    keyTables: [FactClaims, FactProjects, DimPartner, DimAccount, DimGeo]
-    keyMeasures: [Total Revenue, Total Claims, Active Partners]
+  ExampleDataset1:
+    summary: "<Description of what this dataset contains>"
+    keyTables: [FactTable1, FactTable2, DimTable1, DimTable2, DimDate]
+    keyMeasures: [Total Revenue, Total Count, Active Records]
     environments:
       DEV:
-        datasetId: "<DEV_DATASET_ID>"
+        datasetId: "<DEV_DATASET_GUID>"
       UAT:
-        datasetId: "5ae966a6-164e-4d59-abc0-786d63e0d85a"
+        datasetId: "<UAT_DATASET_GUID>"
       PROD:
-        datasetId: "565dfcb5-776c-4fd6-808f-e174b2976597"
+        datasetId: "<PROD_DATASET_GUID>"
 
-  ActivitiesUtilizationROB:
-    summary: "Claims, profiles, engagement configs, activity hierarchy, program scores."
-    keyTables: [FactClaims, FactActivities, DimPartner, DimEngagement, DimDate]
-    keyMeasures: [Total Claims, Utilization Rate, Active Engagements]
+  ExampleDataset2:
+    summary: "<Description of second dataset>"
+    keyTables: [FactActivity, DimPartner, DimEngagement, DimDate]
+    keyMeasures: [Total Activities, Active Partners, Utilization Rate]
     environments:
       DEV:
-        datasetId: "<DEV_DATASET_ID>"
+        datasetId: "<DEV_DATASET_GUID>"
       UAT:
-        datasetId: "3593a3f8-4814-412e-b86c-9b36156c1099"
+        datasetId: "<UAT_DATASET_GUID>"
       PROD:
-        datasetId: "d9a1d5f5-5d1b-4c41-8b08-14193b57c6c0"
-
-  PartnerInvestmentCopilotChatAccelerate:
-    summary: "Copilot Chat MAU, tenant-partner mapping, customer segmentation."
-    keyTables: [FactMAU, DimTenant, DimPartner, DimCustomerSegment, DimDate]
-    keyMeasures: [Total MAU, Active Tenants, Partner Count]
-    environments:
-      DEV:
-        datasetId: "<DEV_DATASET_ID>"
-      UAT:
-        datasetId: "ca74d2c9-55ae-414f-905d-0e8973bf6a68"
-      PROD:
-        datasetId: "a95a4897-b482-4406-bf60-ba6306dd29fd"
-
-  PartnerPerformanceAndEngagement:
-    summary: "Partner claims, earnings, commitments, engagement status, solution areas."
-    keyTables: [FactClaims, FactEarnings, DimPartner, DimSolutionArea, DimEngagement]
-    keyMeasures: [Total Earnings, Total Claims, Active Partners]
-    environments:
-      DEV:
-        datasetId: "6a84bf57-55c8-43c3-8341-907ff9a975ae"
-      UAT:
-        datasetId: "1a1dba12-d9db-43bd-b122-9f1575c74d95"
-      PROD:
-        datasetId: "f747ac9b-db1c-467c-bb73-386cf567e527"
-
-  ImpactAndMWSCube:
-    summary: "MWS usage/impact, partner profiles, solution areas, claims, earnings."
-    keyTables: [FactUsage, FactImpact, DimPartner, DimSolutionArea, DimDate]
-    keyMeasures: [Total Impact, MWS Usage, Partner Revenue]
-    environments:
-      DEV:
-        datasetId: "<DEV_DATASET_ID>"
-      UAT:
-        datasetId: "<UAT_DATASET_ID>"
-      PROD:
-        datasetId: "0d8eb0c3-9571-4d65-a57b-ef7854135d3b"
-
-  ModernWorkPerformanceMeasurement:
-    summary: "Modern work performance measurement - copilot, power platform, workshops."
-    keyTables: [FactClaims, FactWorkshops, DimPartner, DimEngagement, DimDate]
-    keyMeasures: [Total Claims, Workshop Count, Active Partners]
-    environments:
-      DEV:
-        datasetId: "<DEV_DATASET_ID>"
-      UAT:
-        datasetId: "<UAT_DATASET_ID>"
-      PROD:
-        datasetId: "ca5ab26a-595f-45f2-88a1-b9c2f28c1416"
-
-  EASecurityPerformanceMeasurement:
-    summary: "EA Security performance measurement - partner claims and engagement."
-    keyTables: [FactClaims, DimPartner, DimEngagement, DimDate]
-    keyMeasures: [Total Claims, Active Partners, Security Engagements]
-    environments:
-      DEV:
-        datasetId: "<DEV_DATASET_ID>"
-      UAT:
-        datasetId: "<UAT_DATASET_ID>"
-      PROD:
-        datasetId: "bea9c381-0a40-4486-82c0-f7affb8e91df"
-
-  PartnerInvestmentsSPF:
-    summary: "SPF report for Perform, Transform and executive summary."
-    keyTables: [FactPerformance, FactTransform, DimPartner, DimDate]
-    keyMeasures: [Perform Score, Transform Score, Total Partners]
-    environments:
-      DEV:
-        datasetId: "<DEV_DATASET_ID>"
-      UAT:
-        datasetId: "c84c53e4-9eee-4494-8225-038e5d985887"
-      PROD:
-        datasetId: "346f0584-85ab-4751-8398-50a5541a56f7"
-
-  PartnerControlsDashboard:
-    summary: "Partner claiming behavior and GTM spend tracking."
-    keyTables: [FactClaims, FactAllocations, DimPartner, DimArea, DimDate]
-    keyMeasures: [Total Spend, Allocation Used, Claim Rate]
-    environments:
-      DEV:
-        datasetId: "<DEV_DATASET_ID>"
-      UAT:
-        datasetId: "<UAT_DATASET_ID>"
-      PROD:
-        datasetId: "14b52029-e798-439d-878c-b2dc4f9e59e7"
+        datasetId: "<PROD_DATASET_GUID>"
 
 # =============================================================================
 # QUICK LOOKUP TEMPLATE
 # =============================================================================
 # Example usage in agent:
-#   1. User says: "Compare AzureInvestments DEV vs PROD"
-#   2. Look up: datasets.AzureInvestments.environments.DEV.datasetId
-#   3. Look up: datasets.AzureInvestments.environments.PROD.datasetId
+#   1. User says: "Compare ExampleDataset1 DEV vs PROD"
+#   2. Look up: datasets.ExampleDataset1.environments.DEV.datasetId
+#   3. Look up: datasets.ExampleDataset1.environments.PROD.datasetId
 #   4. Run GetSemanticModelSchema on both
 #   5. Run comparison queries on both
 #   6. Report differences

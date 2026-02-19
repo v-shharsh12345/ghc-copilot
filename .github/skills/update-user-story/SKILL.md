@@ -1,6 +1,6 @@
 ---
 name: update-user-story
-description: Update Azure DevOps (ADO) user stories in OneMW project based on references and requirements. Use this skill when the user provides a user story ID and wants to (1) update the description with detailed requirements, (2) add or update acceptance criteria, (3) add comments with implementation details or clarifications, (4) add appropriate tags for categorization and tracking. This skill processes referenced materials (documents, conversations, specifications) to enrich the user story with comprehensive details. Requires ADO MCP server access.
+description: Update Azure DevOps (ADO) user stories based on references and requirements. Use this skill when the user provides a user story ID and wants to (1) update the description with detailed requirements, (2) add or update acceptance criteria, (3) add comments with implementation details or clarifications, (4) add appropriate tags for categorization and tracking. This skill processes referenced materials (documents, conversations, specifications) to enrich the user story with comprehensive details. Requires ADO MCP server access.
 ---
 
 # Update ADO User Story Skill
@@ -17,9 +17,11 @@ description: Update Azure DevOps (ADO) user stories in OneMW project based on re
 
 Before executing this skill, verify:
 - ADO MCP server is available and configured
-- User has provided the **User Story ID** from OneMW project
+- User has provided the **User Story ID**
 - User has provided or referenced materials containing requirements/details
 - Access to relevant context (documents, conversations, specifications)
+
+> **Configuration:** Read `config/user-context.yaml` at runtime to resolve ADO project name from `ado.projects.userStories.name`.
 
 ## Execution Steps
 
@@ -27,7 +29,7 @@ Before executing this skill, verify:
 
 Use ADO MCP tools to fetch the current user story:
 
-1. Query the work item by ID in the **OneMW** project
+1. Query the work item by ID in the configured project
 2. Review existing fields:
    - Title
    - Description
@@ -41,7 +43,7 @@ Use ADO MCP tools to fetch the current user story:
 **Tool to use:** `mcp_microsoft_azu_search_workitem` or get work item by ID
 
 ```text
-Project: OneMW
+Project: <project from config/user-context.yaml>
 Work Item ID: [provided by user]
 ```
 
@@ -171,7 +173,7 @@ Add tags based on the user story content:
 | **Type** | `Feature`, `Enhancement`, `Tech-Debt`, `Bug-Fix` |
 | **Priority** | `P0-Critical`, `P1-High`, `P2-Medium`, `P3-Low` |
 | **Domain** | `Data-Engineering`, `Reporting`, `Analytics`, `Infrastructure` |
-| **Team** | `Data-Platform`, `Incentive-Reporting`, `DevOps` |
+| **Team** | `Data-Platform`, `Reporting`, `DevOps` |
 
 **Tool to use:** Update work item Tags field
 
@@ -271,7 +273,7 @@ Tags: (none)
 ```html
 <div>
   <h2>Overview</h2>
-  <p>Implement automated data refresh for the IncentiveReporting Lakehouse to ensure timely data availability for downstream reports.</p>
+  <p>Implement automated data refresh for the main Lakehouse to ensure timely data availability for downstream reports.</p>
   
   <h2>Background</h2>
   <p>Currently, data refreshes are triggered manually, causing delays in report availability. Stakeholders require data to be refreshed every 6 hours to meet SLA requirements.</p>
@@ -293,7 +295,7 @@ Tags: (none)
   
   <h2>Dependencies</h2>
   <ul>
-    <li>MWS_Staging_MCAP Lakehouse must be available</li>
+    <li>Staging Lakehouse must be available</li>
     <li>Service principal with Fabric API permissions</li>
   </ul>
   
@@ -335,7 +337,7 @@ Tags: (none)
 
 **Tags:**
 ```text
-Fabric; Data-Engineering; Feature; P1-High; Incentive-Reporting
+Fabric; Data-Engineering; Feature; P1-High
 ```
 
 **Comment Added:**
@@ -350,11 +352,11 @@ Fabric; Data-Engineering; Feature; P1-High; Incentive-Reporting
 **Key Updates Made:**
 1. Description: Added overview, background, functional/technical requirements, dependencies, and references
 2. Acceptance Criteria: Added 3 ACs with Given-When-Then format plus Definition of Done
-3. Tags: Added Fabric, Data-Engineering, Feature, P1-High, Incentive-Reporting
+3. Tags: Added Fabric, Data-Engineering, Feature, P1-High
 
 **Assumptions:**
 - Service principal already has required permissions
-- Audit table schema exists in MWSDataWarehouse
+- Audit table schema exists in the data warehouse
 
 **Open Questions:**
 - [ ] Confirm exact notification recipients list
@@ -368,7 +370,7 @@ Fabric; Data-Engineering; Feature; P1-High; Incentive-Reporting
 
 | Issue | Resolution |
 |-------|------------|
-| User story not found | Verify the work item ID and confirm it exists in OneMW project |
+| User story not found | Verify the work item ID and confirm it exists in the configured project |
 | Permission denied | Ensure ADO MCP server has write access to the project |
 | Tags not applying | Check that tag format is semicolon-separated |
 | HTML not rendering | Verify HTML is well-formed and use supported tags only |
@@ -381,5 +383,5 @@ Fabric; Data-Engineering; Feature; P1-High; Incentive-Reporting
 - **Verify before updating**: Show the user what will be updated and get confirmation for significant changes
 - **Use consistent formatting**: Follow the HTML templates for proper rendering in ADO
 - **Reference all sources**: Always cite where information came from in the comment
-- **Project**: Always use **OneMW** as the project name
+- **Project**: Always use the project configured in `config/user-context.yaml` → `ado.projects.userStories.name`
 - **Ask for clarification**: If references are ambiguous, ask the user for clarification before updating

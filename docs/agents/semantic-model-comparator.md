@@ -64,10 +64,10 @@ Add an entry to `dataset-catalog.yaml`:
 ## Example Prompts
 
 ```
-Compare AzureInvestments DEV vs PROD
-Check schema drift for Claims dataset across all environments
+Compare SalesDataset DEV vs PROD
+Check schema drift for Orders dataset across all environments
 Validate row counts for Eligibility DEV vs UAT
-Are metrics consistent between UAT and PROD for IncentiveReporting?
+Are metrics consistent between UAT and PROD for the main model?
 ```
 
 ## Output Format
@@ -75,17 +75,17 @@ Are metrics consistent between UAT and PROD for IncentiveReporting?
 The agent produces a structured comparison report:
 
 ```
-## Comparison: AzureInvestments — DEV vs PROD
+## Comparison: SalesDataset — DEV vs PROD
 
 ### Schema Comparison
 ✅ Tables match (12/12)
-⚠️ 2 new columns in DEV not in PROD: [dim_Partner.NewFlag, fact_Claims.AdjustmentType]
+⚠️ 2 new columns in DEV not in PROD: [dim_Customer.NewFlag, fact_Orders.AdjustmentType]
 
 ### Row Counts
 | Table | DEV | PROD | Variance | Status |
 |-------|-----|------|----------|--------|
-| fact_Claims | 1,245,000 | 1,240,000 | 0.4% | ✅ PASS |
-| dim_Partner | 8,500 | 8,200 | 3.7% | ✅ PASS |
+| fact_Orders | 1,245,000 | 1,240,000 | 0.4% | ✅ PASS |
+| dim_Customer | 8,500 | 8,200 | 3.7% | ✅ PASS |
 
 ### Key Metrics
 | Metric | DEV | PROD | Variance | Status |

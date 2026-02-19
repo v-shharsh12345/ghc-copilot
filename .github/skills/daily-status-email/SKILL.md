@@ -18,10 +18,12 @@ Generate a professional daily status email summarizing your accomplishments, act
 
 ## Default Configuration
 
+> **Configuration:** Read `config/user-context.yaml` at runtime to resolve recipient, subject prefix, and section structure.
+
 | Setting | Value |
 |---------|-------|
-| **Default Recipient** | arnavl@maqsoftware.com |
-| **Subject Format** | Arnav Loonker: Daily Status Update as of [MM/DD/YYYY] |
+| **Default Recipient** | Resolve from `config/user-context.yaml` → `statusEmail.recipient` |
+| **Subject Format** | `{statusEmail.subjectPrefix}: Daily Status Update as of [MM/DD/YYYY]` |
 | **Auto-Send** | Enabled |
 
 ---
@@ -113,7 +115,7 @@ After generating the email content, automatically send it using the Mail MCP too
 ```
 Use: mcp_mcp_mailtools_SendEmailWithAttachmentsAsync
 Parameters:
-  to: ["arnavl@maqsoftware.com"]
+  to: ["<recipient from config/user-context.yaml>"]
   subject: "Daily Status Email as of [MM/DD/YYYY]"
   body: [Generated email content in HTML format]
 ```
@@ -121,7 +123,7 @@ Parameters:
 **Example Tool Call:**
 ```json
 {
-  "to": ["arnavl@maqsoftware.com"],
+  "to": ["manager@contoso.com"],
   "subject": "Daily Status Email as of 01/20/2026",
   "body": "<h2>Action Items</h2><table>...</table><h2>Key Meetings</h2><table>...</table>"
 }
@@ -132,8 +134,8 @@ Parameters:
 ## Output Template
 
 ```markdown
-To: arnavl@maqsoftware.com
-Subject: Arnav Loonker: Daily Status Update as of [MM/DD/YYYY]
+To: <recipient from config/user-context.yaml>
+Subject: <subjectPrefix>: Daily Status Update as of [MM/DD/YYYY]
 
 ## Tasks Completed
 
@@ -182,10 +184,10 @@ Subject: Arnav Loonker: Daily Status Update as of [MM/DD/YYYY]
 - **Mention timeline** - When it will be done (if applicable)
 
 **Good Example:**
-> Finalized taxonomy updates for immersion briefing eligibility reports, agreeing to rename confusing fields and split one-to-one vs. one-to-many views. Committed to complete changes in Sprint 141 and validate impact dashboard promotion this week.
+> Finalized schema updates for eligibility reports, agreeing to rename confusing fields and split related views. Committed to complete changes in the current sprint and validate dashboard promotion this week.
 
 **Bad Example:**
-> Worked on taxonomy stuff for reports.
+> Worked on schema stuff for reports.
 
 ### Follow-Up Tasks Style
 
@@ -195,9 +197,9 @@ Subject: Arnav Loonker: Daily Status Update as of [MM/DD/YYYY]
 - Include owners if assigned to others
 
 **Good Example:**
-> • Clarified taxonomy for eligibility fields and agreed to split one-to-one vs. one-to-many reports.
-> • Discussed adding attendee count card and dynamic impact dashboard features.
-> • Reviewed phased rollout for performance measurement and potential midyear acceleration for Biz Apps.
+> • Clarified schema for eligibility fields and agreed to split related report views.
+> • Discussed adding count card and dynamic dashboard features.
+> • Reviewed phased rollout for performance measurement.
 
 ---
 
@@ -258,21 +260,20 @@ Filter action items and meetings to only those related to Azure Accelerate, then
 ## Sample Output
 
 ```
-Subject: Arnav Loonker: Daily Status Update as of 01/20/2026
+Subject: Jane Doe: Daily Status Update as of 01/20/2026
 
 ---
 
 ## Tasks Completed
 
-• Resolved Copilot usage discrepancy; validated flat files and confirmed stability
-• Created user stories for CSP renewal updates; UI update by Feb 6 (Harsh)
-• Compared eligibility metrics with FD&E (90% match); documenting in BRD
-• Formed 4-member team for modeling standardization
-• Automating refresh/pull shortcuts across tables by week's end
-• Agreed on -7 days incremental refresh logic for CSPMR pipeline
-• Proposed PowerShell-based Dev-to-UAT deployment
-• Copilot MAU data refresh needed for free/paid metrics
-• Entra P1 data access from IDEAs unresolved; may remove SMB criterion
+• Resolved data discrepancy in staging pipeline; validated output and confirmed stability
+• Created user stories for upcoming schema updates; UI changes targeted for next sprint
+• Compared validation metrics across environments (90% match); documenting in requirements doc
+• Formed working group for data modeling standardization
+• Automating refresh orchestration across key tables by end of week
+• Agreed on incremental refresh logic for main ETL pipeline
+• Proposed automated Dev-to-UAT deployment workflow
+• Investigated data access gaps for reporting criteria
 
 ---
 
@@ -280,12 +281,11 @@ Subject: Arnav Loonker: Daily Status Update as of 01/20/2026
 
 | Meeting | Attendees | Follow-Up Tasks |
 |---------|-----------|-----------------|
-| [ABS]: PPM LT view handover | Arnav, Akshat, Rohan | • Security Accelerate reporting review • Immersion briefing mapping logic |
-| Daily sync: Data & Reporting | Arnav, Krishna, Harsh, Jai Kishan, Gagandeep, Deepika | • Copilot stability email (Krishna) • CSP UI review (Nomula) • URT PR (Harsh) |
-| Incentive Reporting Huddle | Arnav, Team | • PMO notes update • Copilot MAU refresh |
-| ABS Workshop Eligibility | Arnav, Team | • Entra P1 data access follow-up • Bug tracking pending (Chris) |
-| EA Security Accelerate CSI | Arnav, SI Team | • Partner conversion discrepancies • ESA dashboard enhancements |
-| Cross SA PPM Governance | Arnav, Stakeholders | • Earning cap extension finalized • Bad actor investigation framework |
+| Team Handover Sync | Jane, Alice, Bob | • Review reporting logic • Finalize mapping rules |
+| Daily Standup | Jane, Carol, Dave, Eve, Frank | • Stability confirmation email (Carol) • Schema review (Dave) • PR review (Eve) |
+| Project Huddle | Jane, Team | • Update tracking notes • Data refresh validation |
+| Requirements Workshop | Jane, Team | • Data access follow-up • Bug tracking pending (Frank) |
+| Cross-Team Governance | Jane, Stakeholders | • Policy update finalized • Investigation framework agreed |
 
 ## Training
 

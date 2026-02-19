@@ -18,7 +18,7 @@ The **create-task** skill extracts actionable tasks from Microsoft 365 signals â
 
 | Setting | Value |
 |---------|-------|
-| ADO Project | `PartnerIncentivePlatform-DevOps` |
+| ADO Project | Resolve from `config/user-context.yaml` â†’ `ado.projects.taskCreation.name` |
 | Work Item Type | Task (default), Bug, or User Story |
 | Story Points | 1 |
 | Effort (hours) | 8 |

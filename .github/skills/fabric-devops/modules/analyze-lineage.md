@@ -225,28 +225,28 @@ When depth is `full`, always include both lineage graph output and normalized me
 #### Table-Level Lineage Graph
 
 ```
-IncentiveReporting.dbo.Fact_Incentive_Raw
-  → IncentiveReporting.dbo.Fact_Incentive_Processed
-    → IncentiveModel.Fact Incentive
-      → Incentive Dashboard (Page: Overview, Visual: Revenue KPI Card)
-      → Incentive Dashboard (Page: Detail, Visual: Incentive Table)
+SalesLakehouse.dbo.Fact_Orders_Raw
+  → SalesLakehouse.dbo.Fact_Orders_Processed
+    → SalesModel.Fact Orders
+      → Sales Dashboard (Page: Overview, Visual: Revenue KPI Card)
+      → Sales Dashboard (Page: Detail, Visual: Orders Table)
 ```
 
 #### Column-Level Lineage Graph
 
 ```
-IncentiveReporting.dbo.Fact_Incentive_Raw.IncentiveAmount
-  → IncentiveModel.Fact Incentive[IncentiveAmount]
-    → Incentive Dashboard.Overview.Revenue KPI Card (field)
-    → Incentive Dashboard.Detail.Incentive Table (field)
+SalesLakehouse.dbo.Fact_Orders_Raw.OrderAmount
+  → SalesModel.Fact Orders[OrderAmount]
+    → Sales Dashboard.Overview.Revenue KPI Card (field)
+    → Sales Dashboard.Detail.Orders Table (field)
 ```
 
 #### Structured Output (DataFrame/JSON)
 
 | Source Layer | Source Object | Target Layer | Target Object | Grain |
 | --- | --- | --- | --- | --- |
-| Lakehouse | IncentiveReporting.dbo.Fact_Raw | SemanticModel | IncentiveModel.Fact Incentive | Table |
-| SemanticModel | IncentiveModel.Fact Incentive[Amount] | Report | Dashboard.Overview.KPI Card | Column |
+| Lakehouse | SalesLakehouse.dbo.Fact_Raw | SemanticModel | SalesModel.Fact Orders | Table |
+| SemanticModel | SalesModel.Fact Orders[Amount] | Report | Dashboard.Overview.KPI Card | Column |
 
 ## Fallback: Fabric REST API Route
 

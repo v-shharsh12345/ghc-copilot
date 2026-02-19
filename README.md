@@ -1,6 +1,6 @@
 # Copilot Agents
 
-A centralized repository for GitHub Copilot **agents** and **skills** used across MCAPS projects. These agents extend GitHub Copilot Chat in VS Code with domain-specific capabilities for Fabric DevOps, Azure DevOps work-item management, M365 productivity, and data quality validation.
+A centralized repository for GitHub Copilot **agents** and **skills**. These agents extend GitHub Copilot Chat in VS Code with domain-specific capabilities for Fabric DevOps, Azure DevOps work-item management, M365 productivity, and data quality validation.
 
 Current architecture uses one orchestrator agent that delegates to specialist subagents.
 
@@ -49,9 +49,34 @@ The setup script will:
    - **Team name** — your primary ADO team
    - **Power Platform Environment ID** — for M365 MCP tools
    - **Context7 API key** — for library documentation lookup
-4. Invoke an agent in Copilot Chat — e.g., `@orchestrator Daily triage`.
+4. Copy `config/user-context.template.yaml` to `config/user-context.yaml` and fill in your personal and project context.
+5. Fill in workspace IDs in `.github/skills/fabric-devops/config/workspace-catalog.yaml`.
+6. Fill in dataset IDs in `.github/skills/compare-semantic-models/dataset-catalog.yaml`.
+7. Invoke an agent in Copilot Chat — e.g., `@orchestrator Daily triage`.
 
 > **Note**: HTTP-based MCP servers (Power BI Remote, Microsoft Docs, M365 tools) require no local install — they connect directly to cloud endpoints. The npm-based servers are downloaded automatically by npx on first use if not pre-cached.
+
+### Personalization
+
+All personal and project-specific configuration is stored in `config/user-context.yaml` (gitignored). This keeps the repo clean and shareable while letting each user maintain their own context.
+
+```powershell
+# Copy the template
+cp config/user-context.template.yaml config/user-context.yaml
+
+# Edit with your values
+code config/user-context.yaml
+```
+
+**What to configure:**
+
+| File | What Goes There |
+|------|-----------------|
+| `config/user-context.yaml` | Your name, email, ADO project, team members, business domain terms |
+| `.github/skills/fabric-devops/config/workspace-catalog.yaml` | Your Fabric workspace GUIDs for DEV/UAT/PROD |
+| `.github/skills/compare-semantic-models/dataset-catalog.yaml` | Your semantic model dataset GUIDs per environment |
+
+Agents and skills read `config/user-context.yaml` at runtime for personal context (names, emails, ADO defaults, etc.) and the catalog files for Fabric workspace and dataset IDs.
 
 ---
 
@@ -62,6 +87,8 @@ copilot-agents/
 ├── README.md                          ← You are here
 ├── setup.ps1                          ← Run after cloning to install dependencies
 ├── .gitignore
+├── config/
+│   └── user-context.template.yaml     ← Copy to user-context.yaml and fill in your values
 ├── .vscode/
 │   └── mcp.json                       ← Workspace-level MCP server config (auto-discovered)
 └── .github/
@@ -357,8 +384,8 @@ These values are prompted on first use (stored per-workspace by VS Code):
 |-------|-------------|---------|
 | `ado_org` | Azure DevOps organization name | _(none — must provide)_ |
 | `ado_domain` | ADO domains to enable | _(none — must provide)_ |
-| `ado_team1` | Primary team name | `Data and Reporting POD` |
-| `environment_id` | Power Platform Environment ID | `64ccd25c-fa91-e1d7-a91b-eda82798ec07` |
+| `ado_team1` | Primary team name | _(none — must provide)_ |
+| `environment_id` | Power Platform Environment ID | _(none — must provide)_ |
 | `CONTEXT7_API_KEY` | Context7 API key (secret) | _(none — must provide)_ |
 
 ### VS Code Extensions Required
@@ -402,4 +429,4 @@ These values are prompted on first use (stored per-workspace by VS Code):
 
 | Date | Change |
 |------|--------|
-| 2026-02-18 | Initial repository created; consolidated agents and skills from ABSIncentive and MWScale-2 repos |
+| 2026-02-18 | Initial repository created; consolidated agents and skills into a reusable template |

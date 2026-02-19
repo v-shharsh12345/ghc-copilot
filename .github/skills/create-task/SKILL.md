@@ -11,16 +11,18 @@ Extract actionable tasks from meetings, chats, emails, and Copilot conversations
 
 | Date | Version | Description |
 |------|---------|-------------|
-| 2026-02-09 | 1.1 | Updated: project to PartnerIncentivePlatform-DevOps, What/When/Who description, mandatory comment, Story Points=1 + Effort=8h, Ad-hoc parent resolution |
+| 2026-02-09 | 1.1 | Updated: configurable project, What/When/Who description, mandatory comment, Story Points=1 + Effort=8h, Ad-hoc parent resolution |
 | 2026-02-09 | 1.0 | Initial skill with multi-source context extraction and ADO task creation |
 
 ---
 
 ## Default Configuration
 
+> **Configuration:** Read `config/user-context.yaml` at runtime to resolve ADO project, area path, and team defaults.
+
 | Setting | Value |
 |---------|-------|
-| **ADO Project** | PartnerIncentivePlatform-DevOps |
+| **ADO Project** | Resolve from `config/user-context.yaml` → `ado.projects.taskCreation.name` |
 | **Work Item Type** | Task (default), Bug, or User Story depending on context |
 | **Default Area Path** | Determined from Ad-hoc parent work item or user specification |
 | **Default Iteration** | Current iteration (resolved dynamically) |
@@ -161,8 +163,8 @@ From the gathered context, identify discrete, actionable tasks. For each task ex
 | Pattern | Example |
 |---------|---------|
 | **Good** | "Implement retry logic for Lakehouse refresh pipeline" |
-| **Good** | "Update taxonomy field names in eligibility report" |
-| **Good** | "Validate CSP charge amount data for Sprint 141" |
+| **Good** | "Update field names in eligibility report" |
+| **Good** | "Validate charge amount data for current sprint" |
 | **Bad** | "Do the thing we discussed" |
 | **Bad** | "Fix stuff" |
 | **Bad** | "Meeting follow-up" |
@@ -173,7 +175,7 @@ Resolve where each task should be created:
 
 #### 4a: Project
 
-- Default: **PartnerIncentivePlatform-DevOps**
+- Default: Resolve from `config/user-context.yaml` → `ado.projects.taskCreation.name`
 - Ask only if the user explicitly mentions a different project
 
 #### 4b: Iteration Path
@@ -181,7 +183,7 @@ Resolve where each task should be created:
 ```text
 Tool: mcp_microsoft_azu_work_list_team_iterations
 Parameters:
-  project: "PartnerIncentivePlatform-DevOps"
+  project: "<project from config/user-context.yaml>"
   team: [resolved team name]
   timeframe: "current"
 Purpose: Get the current active iteration for the team
@@ -197,7 +199,7 @@ Every task **must** be parented under the correct **Ad-hoc** parent in the curre
 ```text
 Tool: activate_azure_devops_project_management_tools -> search work items
 Query: "Ad-hoc" OR "Adhoc"
-Project: PartnerIncentivePlatform-DevOps
+Project: <project from config/user-context.yaml>
 Filter: Iteration Path = [current iteration path]
 ```
 
@@ -229,7 +231,7 @@ Resolve area path in this priority order:
 ```text
 Tool: activate_azure_devops_work_item_management_tools -> create work item
 Parameters:
-  project: "PartnerIncentivePlatform-DevOps"
+  project: "<project from config/user-context.yaml>"
   type: "Task"
   title: [extracted title]
   description: [HTML-formatted description — see template below]
@@ -286,7 +288,7 @@ Every task description **must** follow this structure:
 ```text
 Tool: mcp_microsoft_azu_wit_add_work_item_comment
 Parameters:
-  project: "PartnerIncentivePlatform-DevOps"
+  project: "<project from config/user-context.yaml>"
   workItemId: [newly created task ID]
   comment: [HTML-formatted comment — see template below]
   format: "html"
@@ -324,7 +326,7 @@ Link the task as a **child** of the Ad-hoc parent (or user-specified parent):
 ```text
 Tool: mcp_microsoft_azu_wit_work_items_link
 Parameters:
-  project: "PartnerIncentivePlatform-DevOps"
+  project: "<project from config/user-context.yaml>"
   updates:
     - id: [newly created task ID]
       linkToId: [Ad-hoc parent work item ID]
@@ -413,7 +415,7 @@ Before creating a task, search for potential duplicates:
 ```text
 Tool: activate_azure_devops_project_management_tools -> search work items
 Query: [task title keywords]
-Project: PartnerIncentivePlatform-DevOps
+Project: <project from config/user-context.yaml>
 ```
 
 If a potential duplicate is found, present it to the user:
@@ -431,22 +433,22 @@ If a potential duplicate is found, present it to the user:
 1. Query WorkIQ: *"What were the action items from my standup meeting today?"*
 2. Pull calendar event for attendees and meeting name
 3. Extract tasks like:
-   - "Investigate data discrepancy in CSP charge amounts" → Assigned to Arnav
-   - "Update Silver layer notebook for new taxonomy fields" → Assigned to Deepika
-   - "Review PR #312 for validation framework changes" → Assigned to Harsh
+   - "Investigate data discrepancy in staging charge amounts" → Assigned to Alice
+   - "Update Silver layer notebook for new schema fields" → Assigned to Bob
+   - "Review PR #312 for validation framework changes" → Assigned to Carol
 4. Resolve current iteration
 5. Find the Ad-hoc parent in the current iteration
-6. Create 3 tasks in ADO under PartnerIncentivePlatform-DevOps, each with Story Points=1, Effort=8h
+6. Create 3 tasks in ADO under configured project, each with Story Points=1, Effort=8h
 7. Add comment to each task citing the standup meeting and specific action items
 8. Link all tasks as children of the Ad-hoc parent
 9. Present summary table
 
 ### Scenario 2: Task from a Teams Chat
 
-**User:** "Create a task from my chat with Deepika about the Bronze pipeline"
+**User:** "Create a task from my chat with Bob about the Bronze pipeline"
 
 **Execution:**
-1. List chats filtering by Deepika's UPN and topic "Bronze pipeline"
+1. List chats filtering by Bob's UPN and topic "Bronze pipeline"
 2. Read recent messages to extract the discussed task
 3. Extract: "Add error handling for null partition keys in Bronze_DataProcessing_Pipeline"
 4. Create task in ADO, assigned to current user
@@ -497,7 +499,7 @@ If a potential duplicate is found, present it to the user:
 - **Preserve context**: Always include the source (meeting/chat/email) in the task description
 - **Use consistent formatting**: Follow the HTML description template for proper ADO rendering
 - **Link related tasks**: If multiple tasks come from the same source, consider linking them under a common parent
-- **Default project is PartnerIncentivePlatform-DevOps**: Only ask about project if user explicitly mentions a different one
+- **Default project is resolved from `config/user-context.yaml`**: Only ask about project if user explicitly mentions a different one
 - **Always set Story Points and Effort**: Default to Story Points=1, Effort=8 hours on every task
 - **Always add a comment**: Every task must have a comment citing the source meetings and action items
 - **Always parent under Ad-hoc**: Default parent is the Ad-hoc work item in the current iteration

@@ -18,18 +18,13 @@ This skill is treated as a reusable workflow asset and is executed through the `
 
 ## Supported Datasets
 
-Datasets are cataloged in `dataset-catalog.yaml` with environment-specific IDs for:
-
-- Azure Investments Dataset
-- Activities Utilization Dataset
-- MBR Dataset
-- Other datasets defined in the catalog
+Datasets are cataloged in `dataset-catalog.yaml` with environment-specific IDs. Add your own datasets following the template structure provided.
 
 ## Example Invocations
 
 ```
-"Compare AzureInvestments between DEV and PROD"
-"Check schema drift for Activities Utilization across all environments"
+"Compare SalesDataset between DEV and PROD"
+"Check schema drift for Orders across all environments"
 "Validate data quality before promoting to PROD"
 "Are row counts consistent between UAT and PROD?"
 ```
