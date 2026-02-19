@@ -1,0 +1,165 @@
+version: 1.0
+updatedOn: 2026-02-19
+owner: databricks-devops
+
+engines:
+  - id: databricks-api
+    type: databricks-rest-api
+    strengths:
+      - CRUD for clusters, jobs, notebooks, SQL warehouses
+      - Job run submission and status polling
+      - Workspace object management (import/export/list)
+      - DBFS file operations (read/write/delete/list)
+      - Unity Catalog operations (catalogs, schemas, tables, volumes)
+      - Permissions and access control management
+      - Secret scope and secret management
+      - Cluster policy management
+    constraints:
+      - Requires auth token (PAT, OAuth, or Azure SP)
+      - Long-running operations (cluster start, job run) require polling
+    baseEndpoints:
+      clusters: /api/2.0/clusters
+      jobs: /api/2.1/jobs
+      notebooks: /api/2.0/workspace
+      dbfs: /api/2.0/dbfs
+      sql: /api/2.0/sql
+      unityCatalog: /api/2.1/unity-catalog
+      permissions: /api/2.0/permissions
+      secrets: /api/2.0/secrets
+
+  - id: databricks-cli
+    type: databricks-cli
+    strengths:
+      - Bundle-based deployments (validate, deploy, run, destroy)
+      - Scripted automation and CI/CD workflows
+      - Workspace sync and file management
+      - Auth token retrieval and profile management
+      - Cluster and job lifecycle commands
+    constraints:
+      - Requires CLI installation and profile configuration
+      - Bundle operations require databricks.yml configuration
+    keyCommands:
+      auth: "databricks auth login --profile <profile>"
+      token: "databricks auth token -p <profile>"
+      bundleValidate: "databricks bundle validate -t <target>"
+      bundleDeploy: "databricks bundle deploy -t <target>"
+      bundleRun: "databricks bundle run -t <target> <resource>"
+      clustersList: "databricks clusters list -p <profile>"
+      jobsList: "databricks jobs list -p <profile>"
+      workspaceList: "databricks workspace list / -p <profile>"
+
+  - id: databricks-sdk-py
+    type: databricks-python-sdk
+    strengths:
+      - Full programmatic access to all Databricks REST APIs
+      - WorkspaceClient for workspace-level operations
+      - AccountClient for account-level operations
+      - Built-in retry logic and error handling
+      - Long-running operation polling (wait methods)
+      - Dataframe-friendly output for analysis
+    constraints:
+      - Requires Python runtime and databricks-sdk package
+      - Best for automation scripts and notebook-native workflows
+    setup: "pip install databricks-sdk"
+    authPatterns:
+      - "WorkspaceClient()  # implicit auth from notebook or env"
+      - "WorkspaceClient(host=URL, token=TOKEN)  # explicit PAT"
+      - "WorkspaceClient(host=URL, azure_workspace_resource_id=RES_ID, azure_tenant_id=TID, azure_client_id=CID, azure_client_secret=SECRET)  # Azure SP"
+
+  - id: databricks-sql
+    type: databricks-sql-connector
+    strengths:
+      - SQL statement execution against SQL warehouses
+      - Query history retrieval
+      - Delta table operations via SQL
+      - Unity Catalog queries
+    constraints:
+      - Requires SQL warehouse ID and auth
+      - Best for analytical/query workloads
+    setup: "pip install databricks-sql-connector"
+
+  - id: context7-guidance
+    type: knowledge-guidance
+    provider: io.github.upstash/context7
+    strengths:
+      - Implementation guidance and patterns
+      - Fallback advisory for unfamiliar workflows
+      - Decision support when tooling is unavailable
+    constraints:
+      - Guidance only; not an execution engine
+      - Must be paired with API/CLI/SDK for action
+    libraryIds:
+      azureDatabricks: /websites/learn_microsoft_en-us_azure_databricks
+      databricksApi: /websites/databricks_api
+      databricksSdkPy: /databricks/databricks-sdk-py
+      databricksCli: /databricks/cli
+      databricksMcp: /databrickslabs/mcp
+
+routePolicy:
+  defaultWriteOrder: [databricks-api, databricks-cli, databricks-sdk-py]
+  defaultReadOrder: [databricks-api, databricks-cli, databricks-sdk-py]
+  queryOrder: [databricks-sql, databricks-api, databricks-sdk-py]
+  deploymentOrder: [databricks-cli, databricks-api]
+  guidanceFallback: [context7-guidance]
+
+executionProfiles:
+  develop:
+    primarySkill: databricks-devops-develop
+    preferred: [databricks-api, databricks-cli, databricks-sdk-py]
+    fallback: [context7-guidance]
+  operate-monitor:
+    primarySkill: databricks-devops-operate-monitor
+    preferred: [databricks-api, databricks-cli]
+    fallback: [databricks-sdk-py, context7-guidance]
+  cluster-diagnostics:
+    primarySkill: databricks-devops-cluster-diagnostics
+    preferred: [databricks-api, databricks-sdk-py]
+    fallback: [databricks-cli, context7-guidance]
+  validate:
+    primarySkill: databricks-devops-validate
+    preferred: [databricks-api, databricks-cli]
+    fallback: [databricks-sdk-py, context7-guidance]
+  data-ops:
+    primarySkill: databricks-devops-data-ops
+    preferred: [databricks-sql, databricks-api, databricks-sdk-py]
+    fallback: [databricks-cli, context7-guidance]
+  security:
+    primarySkill: databricks-devops-security
+    preferred: [databricks-api, databricks-sdk-py]
+    fallback: [databricks-cli, context7-guidance]
+  release-promote:
+    primarySkill: databricks-devops-release-promote
+    preferred: [databricks-cli, databricks-api]
+    fallback: [context7-guidance]
+
+eventOverrides:
+  - event: cluster-start-failure
+    intent: cluster-diagnostics
+    preferred: [databricks-api, databricks-sdk-py]
+  - event: job-run-failure
+    intent: operate-monitor
+    preferred: [databricks-api, databricks-cli]
+  - event: notebook-execution-error
+    intent: cluster-diagnostics
+    preferred: [databricks-api, databricks-sdk-py]
+  - event: bundle-deployment
+    intent: release-promote
+    preferred: [databricks-cli, databricks-api]
+  - event: delta-table-query
+    intent: data-ops
+    preferred: [databricks-sql, databricks-api]
+  - event: unity-catalog-management
+    intent: data-ops
+    preferred: [databricks-api, databricks-sdk-py]
+  - event: permission-management
+    intent: security
+    preferred: [databricks-api, databricks-sdk-py]
+  - event: secret-management
+    intent: security
+    preferred: [databricks-api, databricks-cli]
+  - event: config-drift-detection
+    intent: validate
+    preferred: [databricks-api, databricks-cli]
+  - event: cross-env-comparison
+    intent: validate
+    preferred: [databricks-api, databricks-sdk-py]
