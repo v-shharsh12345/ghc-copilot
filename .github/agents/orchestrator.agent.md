@@ -2,7 +2,7 @@
 name: orchestrator
 description: Routes requests to the right specialist subagent and coordinates multi-step execution across Chief of Staff and Fabric DevOps workflows.
 tools: ['agent', 'agent/runSubagent', 'read/readFile', 'search/listDirectory', 'search/fileSearch', 'search/textSearch', 'todo']
-agents: ['chief-of-staff', 'fabric-devops']
+agents: ['chief-of-staff', 'fabric-devops', 'databricks-devops']
 handoffs:
   - label: Run with Chief of Staff
     agent: chief-of-staff
@@ -11,6 +11,10 @@ handoffs:
   - label: Run with Fabric DevOps
     agent: fabric-devops
     prompt: Execute this request using Fabric lifecycle capabilities and skill-driven routing.
+    send: false
+  - label: Run with Databricks DevOps
+    agent: databricks-devops
+    prompt: Execute this request using Databricks lifecycle capabilities and skill-driven routing.
     send: false
   - label: Fabric — Develop
     agent: fabric-devops
@@ -40,6 +44,34 @@ handoffs:
     agent: fabric-devops
     prompt: Activate fabric-devops-release-promote skill for lifecycle promotion.
     send: false
+  - label: Databricks — Develop
+    agent: databricks-devops
+    prompt: Activate databricks-devops-develop skill to create or update notebooks, jobs, clusters, or warehouses.
+    send: false
+  - label: Databricks — Monitor
+    agent: databricks-devops
+    prompt: Activate databricks-devops-operate-monitor skill for workspace inventory and health checks.
+    send: false
+  - label: Databricks — Diagnostics
+    agent: databricks-devops
+    prompt: Activate databricks-devops-cluster-diagnostics skill for cluster/job failure investigation.
+    send: false
+  - label: Databricks — Validate
+    agent: databricks-devops
+    prompt: Activate databricks-devops-validate skill for cross-environment drift detection.
+    send: false
+  - label: Databricks — Data Ops
+    agent: databricks-devops
+    prompt: Activate databricks-devops-data-ops skill for Unity Catalog, Delta tables, and data quality checks.
+    send: false
+  - label: Databricks — Security
+    agent: databricks-devops
+    prompt: Activate databricks-devops-security skill for permissions, secrets, and access control.
+    send: false
+  - label: Databricks — Promote
+    agent: databricks-devops
+    prompt: Activate databricks-devops-release-promote skill for bundle deployments and lifecycle promotion.
+    send: false
 ---
 
 # Orchestrator Agent
@@ -58,7 +90,16 @@ Act as the single entrypoint agent. Delegate work to specialist subagents and ke
    - Lakehouse diagnostics and lineage analysis
    - Semantic model schema/data-quality comparisons across DEV/UAT/PROD
    - The `fabric-devops` agent resolves which capability skill to activate based on each skill's self-declared intent triggers
-3. If a request spans both domains, run subagents in parallel when tasks are independent, then synthesize a single response.
+3. Route to `databricks-devops` for:
+   - Databricks development (notebooks, jobs, clusters, warehouses)
+   - Workspace monitoring, job/cluster health checks
+   - Cluster and job failure diagnostics
+   - Cross-environment validation and drift detection
+   - Unity Catalog, Delta table operations, and data quality checks
+   - Permissions, secrets, cluster policies, and access control
+   - Bundle-based deployments and CI/CD promotion across DEV/UAT/PROD
+   - The `databricks-devops` agent resolves which capability skill to activate based on each skill's self-declared intent triggers
+4. If a request spans multiple domains, run subagents in parallel when tasks are independent, then synthesize a single response.
 
 ## Control Rules
 
