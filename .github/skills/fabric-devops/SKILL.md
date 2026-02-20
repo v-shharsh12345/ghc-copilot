@@ -88,3 +88,13 @@ For each operation, the executing capability skill returns:
 - Findings (PASS/WARN/FAIL)
 - Risk notes (guardrails)
 - Next step
+- Execution metrics (tool calls, classification hops, engine used)
+
+## Skill Loading Pattern
+
+Skills follow a **fast-header + deferred-body** pattern:
+
+1. **Fast header** (SKILL.md) — Intent triggers, weight, engine preference, guardrails (~50 lines). Loaded during routing to determine which skill matches.
+2. **Procedure body** (modules/*.md) — Full step-by-step execution procedure (~100-300 lines). Loaded only AFTER the skill is confirmed as the routing winner.
+
+This deferred loading reduces context window pressure during the scoring phase. When an orchestrator `## Skill Hint` is present, the agent can skip the fast-header scoring entirely and load the procedure body directly.

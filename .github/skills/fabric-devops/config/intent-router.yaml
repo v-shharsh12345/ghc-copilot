@@ -3,8 +3,10 @@ updatedOn: 2026-02-18
 owner: fabric-devops
 
 # NOTE: Capability skills are the authoritative source for intent declarations.
-# This file serves as a reference index. Each skill's SKILL.md declares its own
+# This file serves as a reference index ONLY. Each skill's SKILL.md declares its own
 # triggers, weight, and minimum confidence. The agent reads skills directly.
+# When adding or changing triggers, update the skill's SKILL.md FIRST — this file
+# is maintained for reference and disambiguation rules only.
 
 routing:
   strategy: weighted-intent-match

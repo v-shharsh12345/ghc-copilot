@@ -58,15 +58,15 @@ Canonical procedures consumed by capability skills via relative reference:
 
 ## Engine Definitions
 
-Available execution engines (shared across all capability skills):
+Available execution engines (shared across all capability skills). All engines execute via **terminal commands** or **Python scripts** — there are no MCP server bindings for Databricks.
 
-| Engine | Type | Strength |
+| Engine | Execution Method | Strength |
 | --- | --- | --- |
-| `databricks-api` | Databricks REST API | CRUD for all workspace resources, job runs, cluster lifecycle |
-| `databricks-cli` | Databricks CLI + Bundles | Scripted automation, bundle-based deployments, CI/CD |
-| `databricks-sdk-py` | Databricks SDK for Python | Programmatic automation, SDK-native workspace operations |
-| `databricks-sql` | Databricks SQL Connector | SQL execution, query history, warehouse management |
-| `context7-guidance` | Knowledge guidance | Advisory-only fallback for implementation patterns |
+| `databricks-cli` | Terminal: `databricks <command>` | Bundle deploy/validate, workspace sync, cluster/job lifecycle, CI/CD |
+| `databricks-sdk-py` | Terminal: `python <script>` | Programmatic automation, SDK-native workspace operations |
+| `databricks-sql` | Terminal: Python + `databricks-sql-connector` | SQL execution, query history, warehouse management |
+| `databricks-api` | Terminal: `curl` or Python `requests` | Direct REST API calls when CLI doesn't cover the endpoint |
+| `context7-guidance` | Context7 MCP (advisory only) | Implementation patterns and best practices |
 
 ## Response Contract
 
@@ -78,3 +78,13 @@ For each operation, the executing capability skill returns:
 - Findings (PASS/WARN/FAIL)
 - Risk notes (guardrails)
 - Next step
+- Execution metrics (tool calls, classification hops, engine used)
+
+## Skill Loading Pattern
+
+Skills follow a **fast-header + deferred-body** pattern:
+
+1. **Fast header** (SKILL.md) — Intent triggers, weight, engine preference, guardrails (~50 lines). Loaded during routing to determine which skill matches.
+2. **Procedure body** (modules/*.md) — Full step-by-step execution procedure (~100-300 lines). Loaded only AFTER the skill is confirmed as the routing winner.
+
+This deferred loading reduces context window pressure during the scoring phase.

@@ -40,14 +40,15 @@ Each skill declares its own intent scope. Match the user's request against the s
 
 ## Routing Protocol
 
-1. Read the user's request and score against each skill's declared triggers and weight.
-2. If confidence is above the skill's minimum confidence threshold, activate that skill.
-3. If multiple skills match, prefer the one with the highest weighted score; apply ambiguity rules from the skill's own declaration.
-4. If confidence is below threshold for all skills, ask one clarifying question.
-5. Resolve workspace from shared [workspace-catalog.yaml](../skills/fabric-devops/config/workspace-catalog.yaml).
-6. Resolve execution engine using the skill's declared engine preference and shared [execution-router.yaml](../skills/fabric-devops/config/execution-router.yaml).
-7. Execute the skill's procedure.
-8. Enforce guardrails from shared [safety-guardrails.md](../skills/fabric-devops/modules/safety-guardrails.md).
+1. **Check for orchestrator skill hint** — If the prompt contains a `## Skill Hint` section from the orchestrator, trust it and skip to step 5. This avoids redundant intent classification and saves a full scoring cycle.
+2. Read the user's request and score against each skill's declared triggers and weight.
+3. If confidence is above the skill's minimum confidence threshold, activate that skill.
+4. If multiple skills match, prefer the one with the highest weighted score; apply ambiguity rules from the skill's own declaration.
+5. If confidence is below threshold for all skills, ask one clarifying question.
+6. Resolve workspace from shared [workspace-catalog.yaml](../skills/fabric-devops/config/workspace-catalog.yaml).
+7. Resolve execution engine using the skill's declared engine preference and shared [execution-router.yaml](../skills/fabric-devops/config/execution-router.yaml).
+8. Execute the skill's procedure.
+9. Enforce guardrails from shared [safety-guardrails.md](../skills/fabric-devops/modules/safety-guardrails.md).
 
 ## Safety Guardrails (Mandatory)
 
@@ -66,3 +67,13 @@ For lifecycle requests, respond with:
 4. Executed actions and artifacts produced
 5. Validation outcome (PASS/WARN/FAIL)
 6. Next recommended action
+
+### Execution Metrics (include in every response)
+
+```
+Metrics:
+- Tool calls: [N]
+- Classification hops: [1 = orchestrator hint trusted, 2 = full internal routing]
+- Skills loaded: [list]
+- Engine used: [primary or fallback]
+```
