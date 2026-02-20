@@ -344,7 +344,8 @@ Test each agent layer with a quick prompt in Copilot Chat:
 |---|---|
 | `@orchestrator Daily triage` | M365 tools + ADO + status email config |
 | `@orchestrator What's the health of my DEV workspace?` | Fabric MCP + workspace catalog |
-| `@chief-of-staff Create a task for testing the setup` | ADO MCP + task creation config |
+| `@ado-devops Create a task for testing the setup` | ADO MCP + task creation config |
+| `@ado-devops Audit the sprint board` | ADO board hygiene + compliance checks |
 | `@fabric-devops List items in DEV` | Fabric REST API auth + workspace ID |
 
 If any prompt fails, check the **Auth troubleshooting** table in Section 3.
@@ -370,12 +371,14 @@ copilot-agents/
     ├── agents/                        ← Agent definitions
     │   ├── orchestrator.agent.md
     │   ├── chief-of-staff.agent.md
+    │   ├── ado-devops.agent.md
     │   ├── fabric-devops.agent.md
     │   └── databricks-devops.agent.md
     └── skills/                        ← Skill definitions + config
         ├── create-task/
         ├── daily-status-email/
         ├── update-user-story/
+        ├── ado-board-hygiene/
         ├── compare-semantic-models/
         ├── fabric-devops/             ← Shared resource layer
         ├── fabric-devops-*/           ← Capability skills
@@ -386,14 +389,14 @@ copilot-agents/
 
 | Server | Type | Auth | Used By |
 |---|---|---|---|
-| **Azure DevOps** | stdio (npx) | Azure AD via `az login` | Chief of Staff, Create Task |
+| **Azure DevOps** | stdio (npx) | Azure AD via `az login` | ADO DevOps |
 | **Playwright** | stdio (npx) | None (local browser) | Browser automation |
 | **WorkIQ** | stdio (npx) | Microsoft Entra (OAuth popup) | Chief of Staff (M365 signals) |
 | **Context7** | stdio (npx) | API key (prompted once) | Fabric DevOps (library docs) |
-| **Mail / Calendar / Teams / Word** | HTTP | Microsoft Entra (OAuth consent) | Chief of Staff, Create Task |
+| **Mail / Calendar / Teams / Word** | HTTP | Microsoft Entra (OAuth consent) | Chief of Staff |
 | **M365 Copilot** | HTTP | Microsoft Entra (OAuth consent) | Chief of Staff |
-| **Power BI Remote** | HTTP | Azure AD via `az login` | Semantic model queries |
-| **Microsoft Docs** | HTTP | Public (none) | Fabric DevOps |
+| **Power BI Remote** | HTTP | Azure AD via `az login` | Fabric DevOps (semantic model queries) |
+| **Microsoft Docs** | HTTP | Public (none) | Fabric DevOps, ADO DevOps |
 
 > **HTTP-based servers** require no local install — they connect directly to cloud endpoints.
 > **stdio (npx) servers** are downloaded automatically on first use; `setup.ps1` pre-caches them.

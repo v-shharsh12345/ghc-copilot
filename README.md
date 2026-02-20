@@ -1,6 +1,6 @@
 # Copilot Agents
 
-GitHub Copilot **agents** and **skills** for Fabric DevOps, Azure DevOps work-item management, M365 productivity, and data quality validation. One orchestrator agent delegates to specialist subagents.
+GitHub Copilot **agents** and **skills** for Fabric DevOps, Databricks DevOps, Azure DevOps work-item management, M365 productivity, and board compliance. One orchestrator agent delegates to specialist subagents.
 
 ## Quick Start
 
@@ -29,20 +29,21 @@ See the [Setup Guide](docs/4-Setup-Guide.md) for full configuration steps.
 | Agent | Purpose |
 |-------|---------|
 | **Orchestrator** | Single entrypoint — routes to specialists |
-| **Chief of Staff** | M365 triage, ADO work items, status emails |
+| **Chief of Staff** | M365 triage, status emails, meeting prep, comms drafts |
+| **ADO DevOps** | ADO work items, compliance, board hygiene, test cases |
 | **Fabric DevOps** | Full Fabric lifecycle (develop, monitor, validate, promote) |
 | **Databricks DevOps** | Full Databricks lifecycle (notebooks, jobs, clusters, CI/CD) |
 
 ## Skills
 
-| Skill | Domain |
-|-------|--------|
-| Create Task | M365 signals → ADO tasks |
-| Daily Status Email | Auto-generated status → manager |
-| Update User Story | Reference docs → enriched ADO stories |
-| Fabric DevOps (7 capabilities) | Develop, Monitor, Diagnostics, Validate, Lineage, Testing, Promote |
-| Databricks DevOps (7 capabilities) | Develop, Monitor, Diagnostics, Validate, Data Ops, Security, Promote |
-| Compare Semantic Models | DAX-based cross-environment model comparison |
+| Skill | Agent | Domain |
+|-------|-------|--------|
+| Daily Status Email | Chief of Staff | Auto-generated status → manager |
+| Create Task | ADO DevOps | M365 signals → ADO tasks |
+| Update User Story | ADO DevOps | Reference docs → enriched ADO stories |
+| Board Hygiene Audit | ADO DevOps | 28-point compliance check, scored report, auto-fix |
+| Fabric DevOps (7 capabilities) | Fabric DevOps | Develop, Monitor, Diagnostics, Validate, Lineage, Testing, Promote |
+| Databricks DevOps (7 capabilities) | Databricks DevOps | Develop, Monitor, Diagnostics, Validate, Data Ops, Security, Promote |
 
 ## Contributing
 

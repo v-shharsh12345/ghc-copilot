@@ -20,6 +20,7 @@ Real workflows our team performs, with before/after comparisons and time savings
 ## 2. Create ADO Tasks from a Meeting
 
 > **Who:** PMs, Devs — **Prompt:** `Create tasks from my standup meeting today`
+> **Agent flow:** Orchestrator → Chief of Staff (extract meeting action items) → ADO DevOps (create tasks)
 
 | | Before | After |
 |---|---|---|
@@ -73,6 +74,7 @@ Real workflows our team performs, with before/after comparisons and time savings
 ## 6. Update ADO User Story with Requirements
 
 > **Who:** PMs, Devs — **Prompt:** `Update user story 12345 with the requirements from the BRD`
+> **Agent:** ADO DevOps
 
 | | Before | After |
 |---|---|---|
@@ -109,6 +111,20 @@ Real workflows our team performs, with before/after comparisons and time savings
 
 ---
 
+## 9. ADO Board Hygiene Audit
+
+> **Who:** Scrum Masters, Team Leads, PMs — **Prompt:** `Audit the sprint board for hygiene issues`
+> **Agent:** ADO DevOps (Board Hygiene skill)
+
+| | Before | After |
+|---|---|---|
+| **Steps** | Manually review each work item for missing fields, stale states, orphaned tasks; track in spreadsheet | Agent runs 28-point compliance check, produces scored report, optionally auto-fixes |
+| **Time** | ~25 min | ~3 min |
+| **Effort** | High (tedious, error-prone) | Low (review report, approve fixes) |
+| **Weekly savings** | | **~0.7 hours** |
+
+---
+
 ## Aggregate Weekly Savings
 
 | Use Case | Frequency | Time Saved | Weekly Total |
@@ -121,7 +137,8 @@ Real workflows our team performs, with before/after comparisons and time savings
 | Update user stories | 1×/week | 32 min | 0.53 hrs |
 | Health check / inventory | 1×/week | 34 min | 0.57 hrs |
 | Deploy & promote | 2×/week | 24 min | 0.80 hrs |
-| **Total** | | | **~9.4 hrs/week** |
+| Board hygiene audit | 1×/week | 22 min | 0.37 hrs |
+| **Total** | | | **~9.8 hrs/week** |
 
 > **That's more than a full working day per week recovered per team member.**
 

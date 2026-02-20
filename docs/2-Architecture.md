@@ -14,18 +14,18 @@
 │  Intent classification · Agent routing · Multi-agent composition · Result synthesis      │
 │  Tools: runSubagent, todo                                                               │
 │  NO domain tools — delegates everything                                                 │
-└────────┬───────────────────┬────────────────────────┬──────────────────┬────────────────┘
-         │                   │                        │                  │
-         ▼                   ▼                        ▼                  ▼
-┌──────────────┐  ┌────────────────┐  ┌──────────────────┐  ┌──────────────────────┐
-│ Chief of     │  │ Fabric DevOps  │  │ Databricks       │  │ Semantic Model       │
-│ Staff        │  │                │  │ DevOps           │  │ Comparator           │
-│              │  │  7 capability  │  │  7 capability    │  │                      │
-│ 3 skills     │  │  skills        │  │  skills          │  │ Cross-env QA         │
-│ M365 + ADO   │  │  Fabric + PBI  │  │  DB + UC + DBFS  │  │ Schema + Metrics     │
-└──────┬───────┘  └───────┬────────┘  └────────┬─────────┘  └──────────┬───────────┘
-       │                  │                     │                       │
-       ▼                  ▼                     ▼                       ▼
+└────────┬──────────┬───────────────────┬────────────────────────┬────────────────┘
+         │          │                   │                        │
+         ▼          ▼                   ▼                        ▼
+┌──────────────┐  ┌──────────────┐  ┌────────────────┐  ┌──────────────────┐
+│ Chief of     │  │ ADO DevOps   │  │ Fabric DevOps  │  │ Databricks       │
+│ Staff        │  │              │  │                │  │ DevOps           │
+│              │  │ 3 skills     │  │  7 capability  │  │  7 capability    │
+│ 1 skill      │  │ ADO work     │  │  skills        │  │  skills          │
+│ M365 only    │  │ items + compl│  │  Fabric + PBI  │  │  DB + UC + DBFS  │
+└──────┬───────┘  └──────┬───────┘  └───────┬────────┘  └────────┬─────────┘
+       │                 │                  │                     │
+       ▼                 ▼                  ▼                     ▼
 ┌─────────────────────────────────────────────────────────────────────────────────────────┐
 │  LAYER 3 — EXECUTION SKILLS (SKILL.md files)                                            │
 │  Each skill self-declares: triggers, weight, engine preference, procedure, guardrails   │
@@ -70,6 +70,7 @@ The orchestrator is a **classifier + dispatcher**. It never calls domain tools d
                │  Action:   "deploy"    │  ──► promote-release
                │  Env:      "UAT"       │  ──► env-aware
                │  M365:     (none)      │  ──► Chief of Staff ✗
+               │  ADO:      (none)      │  ──► ADO DevOps ✗
                └───────────┬───────────┘
                            │
                            ▼
@@ -77,9 +78,9 @@ The orchestrator is a **classifier + dispatcher**. It never calls domain tools d
                │  2. ROUTING SCORES    │
                │                       │
                │  chief-of-staff: 0.05 │  ──► below threshold
+               │  ado-devops:     0.00 │  ──► no triggers matched
                │  fabric-devops:  0.82 │  ──► "deploy" + "notebook" + "UAT"
                │  databricks:     0.15 │  ──► "notebook" partial match
-               │  sem-comparator: 0.00 │  ──► no triggers matched
                └───────────┬───────────┘
                            │
                            ▼
@@ -134,10 +135,10 @@ score(agent) = (matched_triggers / agent_total_triggers) × trigger_weight
 
 | Agent | Trigger Keywords |
 | :--- | :--- |
-| `chief-of-staff` | email, mail, meeting, calendar, teams, chat, triage, status, daily, prep, ADO, work item, user story, task, bug, action item, follow-up, draft, send |
+| `chief-of-staff` | email, mail, meeting, calendar, teams, chat, triage, status, daily, prep, draft, send |
+| `ado-devops` | ADO, work item, user story, task, bug, action item, follow-up, board hygiene, compliance, test case, acceptance criteria, sprint, iteration, area path, state transition |
 | `fabric-devops` | fabric, lakehouse, semantic model, power bi, notebook, pipeline, lineage, trace, monitor, validate, compare, promote, deploy, schema drift, row count, metric, freshness, shortcut, failure, logs, inventory, health, run history, report, pbir, tmdl, metadata, impact analysis |
 | `databricks-devops` | databricks, cluster, job, warehouse, notebook, unity catalog, delta, DBFS, volume, schema, catalog, bundle, permissions, secrets, access control, cluster policy, token, ACL, driver logs, spark ui, OOM, timeout, config drift |
-| `semantic-model-comparator` | compare semantic model, dataset compare, schema diff, row count variance, metric variance, data freshness, DEV vs UAT, UAT vs PROD, model parity, deployment readiness check |
 
 ---
 
@@ -151,7 +152,7 @@ Pattern 1: DEPLOY → VALIDATE → REPORT
 User: "promote notebook to UAT and verify"
 
   ┌─────────────────┐      output      ┌────────────────┐      if issues     ┌────────────────┐
-  │  fabric-devops   │ ──────────────► │  fabric-devops  │ ──────────────►   │  chief-of-staff │
+  │  fabric-devops   │ ──────────────► │  fabric-devops  │ ──────────────►   │  ado-devops     │
   │  release-promote │   run ID, status │  validate       │  drift found      │  create ADO bug │
   └─────────────────┘                  └────────────────┘                    └────────────────┘
        (sequential)                         (sequential)                         (conditional)
@@ -163,18 +164,30 @@ User: "daily triage"
 
   ┌── chief-of-staff ──── M365 triage (meetings, mail, action items) ──┐
   │                                                                     │
-  ├── fabric-devops ───── overnight job health summary ────────────────┤  → synthesize
+  ├── ado-devops ─────────── ADO work item triage (blockers, overdue) ─┤  → synthesize
   │                                                                     │    unified
-  └── databricks-devops ─ overnight job health summary ────────────────┘    briefing
+  ├── fabric-devops ───── overnight job health summary ────────────────┤    briefing
+  │                                                                     │
+  └── databricks-devops ─ overnight job health summary ────────────────┘
 
 
-Pattern 3: IMPACT ANALYSIS (fan-out then merge)
+Pattern 3: M365 ACTION ITEMS → ADO WORK ITEMS
+─────────────────────────────────────────────────────
+User: "create tasks from my standup meeting today"
+
+  ┌── chief-of-staff ── extract action items from meeting ──┐
+  │                                                          │  → orchestrator passes
+  └── ado-devops ──────── create tasks in ADO ──────────────┘    M365 context to ADO
+       (sequential, M365→ADO context sharing)
+
+
+Pattern 4: IMPACT ANALYSIS (fan-out then merge)
 ─────────────────────────────────────────────────────
 User: "what breaks if I change FactClaims?"
 
   ┌── fabric-devops ──────── lineage (upstream/downstream) ────────────┐
   │                                                                     │  → impact map
-  └── semantic-model-comparator ── affected models/metrics ────────────┘    + risk score
+  └── fabric-devops ──────── semantic model testing ───────────────────┘    + risk score
 ```
 
 ---
@@ -535,13 +548,17 @@ Each agent's `.agent.md` frontmatter declares exactly which MCP tools it can cal
 │  Orchestrator ──────────────────► runSubagent, todo (ONLY)                          │
 │                                   No domain tools; no MCP access                    │
 │                                                                                     │
-│  Chief of Staff ────────────────► ADO MCP (work items, repos, wiki)                 │
-│                                   WorkIQ (M365 signals)                             │
+│  Chief of Staff ────────────────► WorkIQ (M365 signals)                              │
 │                                   Mail Tools (send/draft email)                     │
 │                                   Calendar Tools (events)                           │
 │                                   Teams Server (chats, channels)                    │
 │                                   Word Server (documents)                           │
 │                                   M365 Copilot (queries)                            │
+│                                                                                     │
+│  ADO DevOps ────────────────────► ADO MCP (work items, repos, wiki, test plans)     │
+│                                   Context7 (library docs, guidance)                 │
+│                                   Microsoft Docs (search, fetch)                    │
+│                                   File read/search (local definitions)              │
 │                                                                                     │
 │  Fabric DevOps ─────────────────► Fabric MCP (OneLake CRUD, workspace list)         │
 │                                   Power BI Remote (DAX, schema, reports)            │
@@ -552,9 +569,6 @@ Each agent's `.agent.md` frontmatter declares exactly which MCP tools it can cal
 │                                                                                     │
 │  Databricks DevOps ─────────────► (Databricks-specific MCP tools)                   │
 │                                   Context7 (library docs, guidance)                 │
-│                                                                                     │
-│  Semantic Model Comparator ─────► Power BI Remote (DAX queries, schema)             │
-│                                   Fabric MCP (workspace discovery)                  │
 └─────────────────────────────────────────────────────────────────────────────────────┘
 ```
 
@@ -727,10 +741,10 @@ Adding a new capability = adding a new `SKILL.md` file. No agent code changes ne
 | Agent | Domain | Key Responsibility | Tool Access |
 | :--- | :--- | :--- | :--- |
 | **Orchestrator** | Cross-domain | Classify intent, route to specialists, compose multi-agent workflows | `runSubagent`, `todo` only |
-| **Chief of Staff** | PM & M365 | M365 triage, ADO work items, status emails, meeting prep | ADO, WorkIQ, Mail, Calendar, Teams, Word, M365 Copilot |
+| **Chief of Staff** | M365 | M365 triage, status emails, meeting prep, comms drafts | WorkIQ, Mail, Calendar, Teams, Word, M365 Copilot |
+| **ADO DevOps** | Azure DevOps | Work items, compliance, board hygiene, test cases, state transitions | ADO MCP, Context7, Docs |
 | **Fabric DevOps** | Microsoft Fabric | Full lifecycle — develop, monitor, diagnose, validate, lineage, promote | Fabric MCP, Power BI, MSSQL, Context7, Docs |
 | **Databricks DevOps** | Azure Databricks | Full lifecycle — notebooks, jobs, clusters, Unity Catalog, security | Databricks-specific tools, Context7 |
-| **Semantic Model Comparator** | Cross-env QA | Schema diffs, row counts, metric variance, data freshness parity | Power BI Remote, Fabric MCP |
 
 ### Agent Design Rules
 
@@ -750,9 +764,15 @@ Skills are `SKILL.md` files that declare their intent triggers, engine preferenc
 
 | Skill | Purpose | Example Trigger |
 | :--- | :--- | :--- |
-| **Create Task** | M365 signals → ADO tasks | "Create tasks from my standup" |
 | **Daily Status Email** | Synthesize day → formatted email, auto-send | "Generate my daily status" |
-| **Update User Story** | Enrich ADO stories with requirements | "Update story 12345 with the BRD" |
+
+### ADO DevOps Skills
+
+| Skill | Purpose | Example Trigger |
+| :--- | :--- | :--- |
+| **Create Task** | M365 signals → ADO tasks, or direct task creation | "Create tasks from my standup" |
+| **Update User Story** | Enrich ADO stories with requirements from references | "Update story 12345 with the BRD" |
+| **Board Hygiene Audit** | 28-point compliance check, scored report, optional auto-fix | "Audit the sprint board for hygiene issues" |
 
 ### Fabric DevOps Skills
 

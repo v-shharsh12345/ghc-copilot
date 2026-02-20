@@ -1,4 +1,4 @@
-# Chief of Staff 2.0 — Agent Architecture
+# Chief of Staff — Agent Architecture (M365 Focus)
 
 ## System Overview
 
@@ -9,7 +9,6 @@ flowchart LR
         MAIL["📧 Outlook"]
         TEAMS["💬 Teams"]
         CAL["📅 Calendar"]
-        ADO["🔧 ADO"]
         M365["🔍 M365 Search"]
         PBI["📊 Power BI"]
     end
@@ -46,7 +45,7 @@ flowchart LR
     classDef eng fill:#0f3460,stroke:#00d2ff,stroke-width:2px,color:#fff
     classDef out fill:#1a1a2e,stroke:#00c853,stroke-width:2px,color:#fff
 
-    class MAIL,TEAMS,CAL,ADO,M365,PBI src
+    class MAIL,TEAMS,CAL,M365,PBI src
     class F1,F2,F3 flt
     class E1,E2,E3,E4 eng
     class O1,O2,O3,O4,O5 out
@@ -67,7 +66,7 @@ flowchart TB
     subgraph XREF["② CONNECT THE DOTS"]
         direction LR
         X1["Mail ↔ Teams"]
-        X2["ADO ↔ Calendar"]
+        X2["Calendar ↔ M365 Search"]
         X3["Detect discrepancies"]
         X1 --> X3
         X2 --> X3
@@ -127,7 +126,7 @@ flowchart LR
 
 | Layer | Role | Key Behavior |
 |-------|------|-------------|
-| **Data Sources** | Raw signal ingestion from 6 M365 tool categories | Mail, Teams, Calendar, ADO, M365 Search, Power BI |
+| **Data Sources** | Raw signal ingestion from M365 tool categories | Mail, Teams, Calendar, M365 Search, Power BI |
 | **Priority Filter** | Focus lens — only high-value signals pass | 2 projects + 10 stakeholders + non-blocking rule |
 | **Intelligence Engine** | 4-stage pipeline: Triage → Connect → Extract → Format | Cross-references sources, detects discrepancies, evidence-links claims |
 | **Outputs** | Ready-to-use deliverables | Morning Pack, Status Mail, Meeting Prep/MoM, Delta Summaries, Drafts |
@@ -135,9 +134,9 @@ flowchart LR
 
 ### Data Flow
 
-1. **Ingest** — Tools pull last 12-24h signals from Outlook, Teams, Calendar, ADO, M365 Search, Power BI
-2. **Filter** — Priority hierarchy: key chats → project channels → ADO items → stakeholder emails
-3. **Connect** — Cross-reference engine links mail ↔ Teams ↔ ADO ↔ meeting outcomes
+1. **Ingest** — Tools pull last 12-24h signals from Outlook, Teams, Calendar, M365 Search, Power BI
+2. **Filter** — Priority hierarchy: key chats → project channels → stakeholder emails
+3. **Connect** — Cross-reference engine links mail ↔ Teams ↔ calendar ↔ meeting outcomes
 4. **Extract** — Decisions, action items, risks, dependencies pulled with evidence citations
 5. **Format** — Output shaped to template (status mail, morning pack, MoM, etc.)
 6. **Deliver** — Copy-paste-ready output; feedback loop refines next iteration
