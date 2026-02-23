@@ -53,6 +53,14 @@ jobs:
           # Derive title from RELEASES.md heading (e.g. "v1.1 — Databricks DevOps & Evaluation Framework")
           TITLE=$(grep -m1 "## ${TAG}" RELEASES.md | sed 's/^## //' || echo "$TAG")
           
-          gh release create "$TAG" \
-            --title "$TITLE" \
-            --notes-file release-notes.md
+          # Check if release already exists — update it instead of failing
+          if gh release view "$TAG" > /dev/null 2>&1; then
+            echo "Release $TAG already exists — updating notes and title."
+            gh release edit "$TAG" \
+              --title "$TITLE" \
+              --notes-file release-notes.md
+          else
+            gh release create "$TAG" \
+              --title "$TITLE" \
+              --notes-file release-notes.md
+          fi
