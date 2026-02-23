@@ -99,8 +99,19 @@ foreach ($pkg in $packages) {
     }
 }
 
-# ── 5. Verify .vscode/mcp.json ───────────────────────────
-Write-Host "[5/6] Verifying workspace MCP configuration..." -ForegroundColor Yellow
+# ── 5. Configure git hooks ────────────────────────────────
+Write-Host "[5/7] Configuring git hooks..." -ForegroundColor Yellow
+$hooksDir = Join-Path $PSScriptRoot "hooks"
+if (Test-Path $hooksDir) {
+    git config core.hooksPath hooks
+    Write-Host "  core.hooksPath set to 'hooks'" -ForegroundColor Green
+    Write-Host "  Pre-push hook will block unauthorized direct pushes to main" -ForegroundColor Green
+} else {
+    Write-Host "  WARNING: hooks/ directory not found" -ForegroundColor DarkYellow
+}
+
+# ── 6. Verify .vscode/mcp.json ───────────────────────────
+Write-Host "[6/7] Verifying workspace MCP configuration..." -ForegroundColor Yellow
 
 $mcpJsonPath = Join-Path $PSScriptRoot ".vscode" "mcp.json"
 if (Test-Path $mcpJsonPath) {
@@ -117,8 +128,8 @@ if (Test-Path $mcpJsonPath) {
 
 # ── Summary ───────────────────────────────────────────────
 
-# ── 6. Create user-context.yaml from template if needed ──
-Write-Host "[6/6] Checking user context configuration..." -ForegroundColor Yellow
+# ── 7. Create user-context.yaml from template if needed ──
+Write-Host "[7/7] Checking user context configuration..." -ForegroundColor Yellow
 
 $configDir = Join-Path $PSScriptRoot "config"
 $templatePath = Join-Path $configDir "user-context.template.yaml"
