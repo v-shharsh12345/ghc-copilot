@@ -50,6 +50,29 @@ Each skill declares its own intent scope. Match the user's request against the s
 8. Execute the skill's procedure.
 9. Enforce guardrails from shared [safety-guardrails.md](../skills/fabric-devops/modules/safety-guardrails.md).
 
+## Data Access Routing
+
+The agent has three data access paths. **Always pick the right one** — using the wrong path causes failures or unnecessary complexity.
+
+| Path | Tools | Use For | Never Use For |
+|------|-------|---------|---------------|
+| **SQL Endpoint** | `mssql_connect`, `mssql_run_query`, `mssql_list_tables`, `mssql_show_schema` | Querying table data, schema inspection, row counts, data validation, cross-table comparisons | Creating items, uploading files, notebook deployment |
+| **OneLake Direct** | `onelake_item_list`, `onelake_item_create`, `onelake_upload_file`, `onelake_file_list`, `onelake_download_file` | Creating/updating items (notebooks, pipelines), file uploads, workspace inventory, directory operations | Querying table data (use SQL endpoint instead) |
+| **Power BI Remote** | `ExecuteQuery`, `GetSemanticModelSchema`, `GetReportMetadata`, `DiscoverArtifacts` | DAX queries, semantic model inspection, report metadata, artifact discovery | Lakehouse operations, file operations |
+
+**Quick rule:** READ data → SQL endpoint. WRITE/CREATE items → OneLake. Semantic models → Power BI Remote.
+
+Full decision matrix: [develop.md — Data Access Decision Matrix](../skills/fabric-devops/modules/develop.md#data-access-decision-matrix)
+
+## Notebook Deployment Awareness
+
+Notebook operations are the most failure-prone Fabric operations. Before any notebook create/update:
+
+1. **Always run the Notebook Prerequisites Checklist** from [develop.md](../skills/fabric-devops/modules/develop.md#notebook-prerequisites-checklist)
+2. **Follow the Notebook Deployment Protocol** — do NOT improvise the upload strategy
+3. **When uploads fail, do NOT retry the same call** — fall back to Context7 guidance or guide the user to Git integration
+4. **Never attempt to run a notebook as a smoke test** unless explicitly asked — report deployment status only
+
 ## Safety Guardrails (Mandatory)
 
 - Never perform write operations in PROD workspaces
