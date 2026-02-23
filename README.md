@@ -59,6 +59,16 @@ The repo includes an evaluation framework for testing agent routing, skill activ
 
 Run evaluations via: `@orchestrator Run the evaluation suite`
 
+## Releases
+
+See the full [Release History](RELEASES.md) for detailed changelogs.
+
+| Version | Name | Highlights |
+|---------|------|------------|
+| **v1.1** | Databricks DevOps & Evaluation Framework | Databricks agent, 54-scenario eval suite, Wiki DevOps, session checkpointing |
+| **v1.0** | Orchestrator & Fabric DevOps | Orchestrator routing, Fabric lifecycle, ADO board hygiene, Chief of Staff |
+| **v0.9** | Foundation | Project scaffolding, initial Fabric skills, MCP templates, docs framework |
+
 ## Contributing
 
 1. Create a feature branch from `main`
