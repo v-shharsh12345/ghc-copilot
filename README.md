@@ -61,13 +61,15 @@ Run evaluations via: `@orchestrator Run the evaluation suite`
 
 ## Releases
 
-See the full [Release History](RELEASES.md) for detailed changelogs.
+See the full [Release History](RELEASES.md) for detailed changelogs. Releases are created automatically via GitHub Actions when a version tag (`vX.Y`) is pushed.
 
 | Version | Name | Highlights |
 |---------|------|------------|
 | **v1.1** | Databricks DevOps & Evaluation Framework | Databricks agent, 54-scenario eval suite, Wiki DevOps, session checkpointing |
 | **v1.0** | Orchestrator & Fabric DevOps | Orchestrator routing, Fabric lifecycle, ADO board hygiene, Chief of Staff |
 | **v0.9** | Foundation | Project scaffolding, initial Fabric skills, MCP templates, docs framework |
+
+To create a new release: add an entry to `RELEASES.md`, then `git tag vX.Y && git push origin vX.Y`.
 
 ## Contributing
 

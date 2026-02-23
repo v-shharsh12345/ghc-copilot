@@ -21,5 +21,8 @@ config/user-context.yaml
 # **/*-secrets.yaml
 # **/*-credentials.yaml
 
+# One-time release bootstrap script
+create-releases.ps1
+
 # Playwright MCP browser automation artifacts
 .playwright-mcp/
