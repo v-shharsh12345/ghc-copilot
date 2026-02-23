@@ -64,7 +64,7 @@
     {
       "id": "ado_org",
       "type": "promptString",
-      "description": "Azure DevOps organization name (e.g., msft-gps-ip)",
+      "description": "Azure DevOps organization name",
       "password": false
     },
     {

@@ -1,37 +1,38 @@
 version: 1.0
-updatedOn: 2026-02-19
+updatedOn: "<UPDATE_DATE>"
 
 # =============================================================================
 # Workspace Catalog — Databricks environments
 # =============================================================================
-# Update these with your actual Databricks workspace URLs, tokens, and profiles.
+# Copy this file to workspace-catalog.yaml and fill in your actual values.
+# workspace-catalog.yaml is gitignored and will NOT be committed.
 # The agent resolves workspace context from this catalog before any operation.
 
 workspaces:
   - environment: DEV
-    name: "Databricks DEV Workspace"
-    host: "https://adb-7870683271826354.14.azuredatabricks.net"
+    name: "<DEV_WORKSPACE_NAME>"
+    host: "<DEV_DATABRICKS_HOST_URL>"
     profile: "dev-profile"
     writeAllowed: true
-    defaultCatalog: "dev_catalog"
+    defaultCatalog: "<DEV_CATALOG>"
     defaultSchema: "default"
     notes: "Development workspace — full read/write access"
 
   - environment: UAT
-    name: "Databricks UAT Workspace"
-    host: "https://adb-1205206555730722.2.azuredatabricks.net"
+    name: "<UAT_WORKSPACE_NAME>"
+    host: "<UAT_DATABRICKS_HOST_URL>"
     profile: "uat-profile"
     writeAllowed: true
-    defaultCatalog: "uat_catalog"
+    defaultCatalog: "<UAT_CATALOG>"
     defaultSchema: "default"
     notes: "UAT workspace — write allowed for validation"
 
   - environment: PROD
-    name: "Databricks PROD Workspace"
-    host: "https://adb-3333288258901331.11.azuredatabricks.net"
+    name: "<PROD_WORKSPACE_NAME>"
+    host: "<PROD_DATABRICKS_HOST_URL>"
     profile: "prod-profile"
     writeAllowed: false
-    defaultCatalog: "prod_catalog"
+    defaultCatalog: "<PROD_CATALOG>"
     defaultSchema: "default"
     notes: "Production workspace — READ-ONLY, no write operations permitted"
 

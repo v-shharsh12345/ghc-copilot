@@ -98,7 +98,7 @@ This is the most complex stage. Follow this exact protocol:
 #### 3.1 Navigate and Authenticate
 
 1. Navigate to the report URL (PROD workspace preferred).
-2. If authentication prompt appears, click the Microsoft account (`v-arloonker@microsoft.com`).
+2. If authentication prompt appears, click the Microsoft account (your authenticated identity).
 3. Wait for the report to fully load (wait for a known visual title text).
 
 #### 3.2 Prepare the Viewport

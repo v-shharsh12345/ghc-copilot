@@ -11,6 +11,15 @@ desktop.ini
 # User-specific config (created from .template.yaml files)
 config/user-context.yaml
 
+# Sensitive workspace/environment catalogs (created from .template files)
+.github/skills/fabric-devops/config/workspace-catalog.yaml
+.github/skills/databricks-devops/config/workspace-catalog.yaml
+.github/skills/compare-semantic-models/dataset-catalog.yaml
+.vscode/mcp.json
+
 # Sensitive config
 # **/*-secrets.yaml
 # **/*-credentials.yaml
+
+# Playwright MCP browser automation artifacts
+.playwright-mcp/

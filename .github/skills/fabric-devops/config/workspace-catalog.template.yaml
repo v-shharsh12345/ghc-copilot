@@ -1,0 +1,30 @@
+version: 1.0
+updatedOn: "<UPDATE_DATE>"
+
+# =============================================================================
+# Workspace Catalog — Fabric workspaces
+# =============================================================================
+# Copy this file to workspace-catalog.yaml and fill in your actual values.
+# workspace-catalog.yaml is gitignored and will NOT be committed.
+
+workspaces:
+  - environment: DEV
+    name: "<DEV_WORKSPACE_NAME>"
+    workspaceId: "<DEV_WORKSPACE_ID>"
+    writeAllowed: true
+    defaultLakehouseName: "<DEV_LAKEHOUSE_NAME>"
+    defaultLakehouseId: "<DEV_LAKEHOUSE_ID>"
+
+  - environment: UAT
+    name: "<UAT_WORKSPACE_NAME>"
+    workspaceId: "<UAT_WORKSPACE_ID>"
+    writeAllowed: true
+    defaultLakehouseName: "<UAT_LAKEHOUSE_NAME>"
+    defaultLakehouseId: "<UAT_LAKEHOUSE_ID>"
+
+  - environment: PROD
+    name: "<PROD_WORKSPACE_NAME>"
+    workspaceId: "<PROD_WORKSPACE_ID>"
+    writeAllowed: false
+    defaultLakehouseName: "<PROD_LAKEHOUSE_NAME>"
+    defaultLakehouseId: "<PROD_LAKEHOUSE_ID>"
