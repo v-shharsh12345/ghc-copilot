@@ -33,18 +33,41 @@ function Normalize-Assoc($v){
 }
 $excludeAssoc = @('TPOR-DIR','TPOR-IND','TPOR-SOA')
 
-# Resolve latest AzureGold schema with required tables
-$azSchemaDt = Invoke-Q $azServer $azDb @"
-SELECT TOP 1 s.name AS SchemaName
+# Resolve latest AzureGold schema holding the PPR-equivalent map (MapAzureAssociationPartnerPPR).
+# IMPORTANT: the Azure side uses the SAME tables as PPR (Reporting.FactAzureConsumption_Reporting +
+# AzureGold.MapAzureAssociationPartnerPPR), NOT the raw FactAzureConsumption/MapAzureAssociationPartner.
+# The Reporting.FactAzureConsumption_Reporting table is a single shared snapshot; it must be paired
+# with the Gold map snapshot that ALIGNS with it. A freshly-loaded/mid-refresh Gold snapshot can be
+# anomalous (e.g. AzureGold2026061801 inflates ACR ~2x vs the steady trend). Guard: probe each
+# snapshot newest->older against the Reporting fact and reject one that jumps >1.4x vs the next-older.
+$azSchemaListDt = Invoke-Q $azServer $azDb @"
+SELECT s.name AS SchemaName
 FROM sys.schemas s
 WHERE s.name LIKE 'AzureGold20%'
-  AND EXISTS(SELECT 1 FROM sys.tables t WHERE t.schema_id=s.schema_id AND t.name='FactAzureConsumption')
-  AND EXISTS(SELECT 1 FROM sys.tables t WHERE t.schema_id=s.schema_id AND t.name='MapAzureAssociationPartner')
-  AND EXISTS(SELECT 1 FROM sys.tables t WHERE t.schema_id=s.schema_id AND t.name='DimAzureAssociationType')
+  AND EXISTS(SELECT 1 FROM sys.tables t WHERE t.schema_id=s.schema_id AND t.name='MapAzureAssociationPartnerPPR')
 ORDER BY s.name DESC
 "@
-$azSchema = [string]$azSchemaDt.Rows[0]["SchemaName"]
-Write-Host "Latest Azure Gold schema: $azSchema"
+$azCandidates = @($azSchemaListDt.Rows | ForEach-Object { [string]$_["SchemaName"] })
+function Get-ProbeAcr($schema){
+  $d = Invoke-Q $azServer $azDb @"
+WITH CTE AS (SELECT A.ConsumptionID, MAX(PercentAllocation) AS PercentAllocation FROM [$schema].[MapAzureAssociationPartnerPPR] A GROUP BY A.ConsumptionID)
+SELECT ACR = SUM(FAC.BilledConsumption * C.PercentAllocation)
+FROM [Reporting].[FactAzureConsumption_Reporting] AS FAC
+LEFT JOIN CTE C ON C.ConsumptionID = FAC.ConsumptionID
+WHERE FAC.FiscalMonthID = 409
+"@
+  return [double]$d.Rows[0]["ACR"]
+}
+$azSchema = $azCandidates[0]
+if ($azCandidates.Count -ge 2) {
+  $probeNew = Get-ProbeAcr $azCandidates[0]
+  $probeOld = Get-ProbeAcr $azCandidates[1]
+  if ($probeOld -gt 0 -and ($probeNew / $probeOld) -gt 1.4) {
+    Write-Host "WARN: latest Azure Gold '$($azCandidates[0])' is anomalous (probe ACR $([math]::Round($probeNew,0)) is $([math]::Round($probeNew/$probeOld,2))x of '$($azCandidates[1])' $([math]::Round($probeOld,0))). Falling back to aligned snapshot."
+    $azSchema = $azCandidates[1]
+  }
+}
+Write-Host "Using Azure Gold schema: $azSchema"
 
 # Resolve latest IntegrationGold schema holding DimIntegrationTime
 $intSchemaDt = Invoke-Q $intServer $intDb @"
@@ -63,6 +86,13 @@ $dit = @{}
 foreach ($r in $ditDt.Rows) { $dit[[int]$r["FiscalMonthID"]] = [string]$r["FiscalMonthName"] }
 Write-Host "DimIntegrationTime rows (integration): $($ditDt.Rows.Count)"
 
+# DimPartnerAssociationType (AssociationTypeID -> AssociationType) from PPR Gold; used to map the
+# Azure-side Q2 (which groups by AssociationTypeID, since POSOT_Azure has no DimPartnerAssociationType).
+$datDt = Invoke-Q $pprServer $pprDb "SELECT DISTINCT AssociationTypeID, AssociationType FROM [PPR Warehouse].[Gold].[DimPartnerAssociationType] WHERE AssociationTypeID IS NOT NULL"
+$dat = @{}
+foreach ($r in $datDt.Rows) { $dat[[int]$r["AssociationTypeID"]] = [string]$r["AssociationType"] }
+Write-Host "DimPartnerAssociationType rows (PPR): $($datDt.Rows.Count)"
+
 # ============================================================
 # QUERY 1: PPR Warehouse based on Fiscalmonth(Azure) - notebook verbatim (PPR side)
 # ============================================================
@@ -80,15 +110,16 @@ GROUP BY FAC.FiscalMonthID, T.FiscalMonthName
 ORDER BY FAC.FiscalMonthID
 "@
 
-# Azure side: SAME query, schema-swapped. Time dim from POSOT_Integration (in-memory).
+# Azure side: SAME tables as PPR (MapAzureAssociationPartnerPPR + Reporting.FactAzureConsumption_Reporting),
+# only the database differs. Time dim from POSOT_Integration (in-memory).
 $azFmSql = @"
 WITH CTE AS (
     SELECT A.ConsumptionID, MAX(PercentAllocation) AS PercentAllocation
-    FROM [$azSchema].[MapAzureAssociationPartner] A
+    FROM [$azSchema].[MapAzureAssociationPartnerPPR] A
     GROUP BY ConsumptionID
 )
 SELECT FAC.FiscalMonthID, SUM(FAC.BilledConsumption * C.PercentAllocation) AS ACR
-FROM [$azSchema].[FactAzureConsumption] AS FAC
+FROM [Reporting].[FactAzureConsumption_Reporting] AS FAC
 left JOIN CTE C ON C.ConsumptionID = FAC.ConsumptionID
 GROUP BY FAC.FiscalMonthID
 ORDER BY FAC.FiscalMonthID
@@ -110,18 +141,19 @@ INNER JOIN CTE AS F ON F.ConsumptionID = FAC.ConsumptionID
 GROUP BY F.AssociationType
 "@
 
-# Azure side: SAME query, schema-swapped.
+# Azure side: SAME tables as PPR (MapAzureAssociationPartnerPPR + Reporting.FactAzureConsumption_Reporting).
+# POSOT_Azure has no DimPartnerAssociationType, so group by AssociationTypeID here and map the name
+# in-memory using PPR's DimPartnerAssociationType (shared AssociationTypeID key).
 $azAtSql = @"
 WITH CTE AS (
-    SELECT A.ConsumptionID, B.AssociationType, MAX(PercentAllocation) AS PercentAllocation
-    FROM [$azSchema].[MapAzureAssociationPartner] A
-    INNER JOIN [$azSchema].[DimAzureAssociationType] B ON A.AssociationTypeID = B.AssociationTypeID
-    GROUP BY ConsumptionID, B.AssociationType
+    SELECT A.ConsumptionID, A.AssociationTypeID, MAX(PercentAllocation) AS PercentAllocation
+    FROM [$azSchema].[MapAzureAssociationPartnerPPR] A
+    GROUP BY ConsumptionID, A.AssociationTypeID
 )
-SELECT F.AssociationType, SUM(FAC.BilledConsumption * F.PercentAllocation) AS ACR
-FROM [$azSchema].[FactAzureConsumption] AS FAC
+SELECT F.AssociationTypeID, SUM(FAC.BilledConsumption * F.PercentAllocation) AS ACR
+FROM [Reporting].[FactAzureConsumption_Reporting] AS FAC
 INNER JOIN CTE AS F ON F.ConsumptionID = FAC.ConsumptionID
-GROUP BY F.AssociationType
+GROUP BY F.AssociationTypeID
 "@
 
 $runUtc = (Get-Date).ToUniversalTime().ToString("yyyy-MM-dd HH:mm:ss")
@@ -149,7 +181,7 @@ foreach ($fm in (($pprH.Keys + $azH.Keys) | Sort-Object -Unique)) {
     FiscalMonthID = $fm; FiscalMonthName = $(if ($names.ContainsKey($fm)) { $names[$fm] } else { $dit[$fm] })
     PPR_ACR = $p; Azure_ACR = $a; PctDiff = $pct
     PPR_Source = "PPR Warehouse.Gold.FactAzureConsumption_Reporting"
-    Azure_Source = "POSOT_Azure.$azSchema.FactAzureConsumption"; QueryRunUTC = $runUtc
+    Azure_Source = "POSOT_Azure.Reporting.FactAzureConsumption_Reporting (map $azSchema)"; QueryRunUTC = $runUtc
   })
 }
 
@@ -164,7 +196,12 @@ Write-Host "  Azure rows: $($azAt.Rows.Count)"
 $pprA = @{}
 foreach ($r in $pprAt.Rows) { $k = Normalize-Assoc ([string]$r["AssociationType"]); if ($pprA.ContainsKey($k)) { $pprA[$k] += [decimal]$r["ACR"] } else { $pprA[$k] = [decimal]$r["ACR"] } }
 $azA = @{}
-foreach ($r in $azAt.Rows) { $k = Normalize-Assoc ([string]$r["AssociationType"]); if ($azA.ContainsKey($k)) { $azA[$k] += [decimal]$r["ACR"] } else { $azA[$k] = [decimal]$r["ACR"] } }
+foreach ($r in $azAt.Rows) {
+  $id = if ($r["AssociationTypeID"] -is [DBNull]) { $null } else { [int]$r["AssociationTypeID"] }
+  $name = if ($id -ne $null -and $dat.ContainsKey($id)) { $dat[$id] } else { "AssocTypeID=$id" }
+  $k = Normalize-Assoc $name
+  if ($azA.ContainsKey($k)) { $azA[$k] += [decimal]$r["ACR"] } else { $azA[$k] = [decimal]$r["ACR"] }
+}
 
 $atResults = [System.Collections.Generic.List[object]]::new()
 foreach ($k in (($pprA.Keys + $azA.Keys) | Sort-Object -Unique)) {
@@ -177,7 +214,7 @@ foreach ($k in (($pprA.Keys + $azA.Keys) | Sort-Object -Unique)) {
     AssociationType = $k
     PPR_ACR = $p; Azure_ACR = $a; PctDiff = $pct
     PPR_Source = "PPR Warehouse.Gold.FactAzureConsumption_Reporting"
-    Azure_Source = "POSOT_Azure.$azSchema.FactAzureConsumption"; QueryRunUTC = $runUtc
+    Azure_Source = "POSOT_Azure.Reporting.FactAzureConsumption_Reporting (map $azSchema)"; QueryRunUTC = $runUtc
   })
 }
 
