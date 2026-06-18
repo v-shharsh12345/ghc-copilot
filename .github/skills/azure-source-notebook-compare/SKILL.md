@@ -29,6 +29,7 @@ Use this skill when the user shares a Fabric notebook URL and asks for data comp
 4. Sales Gold vs Sales Silver (Source D — POSOT_Sales)
 5. Latest Sales Gold vs Previous Sales Gold (Source D — POSOT_Sales)
 6. Staged Sales Gold vs Silver validation via intermediate tables (Source D — POSOT_Sales)
+7. Same-query cross-source validation — run the PPR Warehouse query against Sales by swapping only schema/table references (Source B vs Source D)
 
 Mode is inferred from notebook SQL intent + heading keywords. If ambiguous, ask one short clarification question.
 
@@ -102,6 +103,43 @@ Output:
 - Difference must be expressed as a **percentage only** (see global Percentage Difference Rule below) — do not output a raw numeric difference column.
 
 > Cross-source rule: PPR Warehouse uses a single `Gold` schema, so for PPR queries skip latest/previous dated-schema resolution and run against `Gold` directly. When a PPR-style query needs `DimIntegrationTime` from POSOT_Integration (different endpoint), fetch it separately and join in-memory.
+
+## Same-Query Cross-Source Validation (PPR Warehouse with Sales)
+
+Trigger: user says something like `validate PPR Warehouse with Sales` (or `validate PPRWarehouse with sales`).
+
+**Meaning (important):** take the **existing PPR Warehouse query from the notebook** and run that **exact same query against Sales (Source D)**. Do **not** author or pick a separate Sales query. Only change the schema / database / table references so the identical logic — same CTE, joins, filters, aggregation grain, and measures — executes on the Sales side. Then compare the two result sets and output **percentage differences** by the shared grain.
+
+**Always read the live notebook first.** Re-fetch the notebook definition (e.g. `scripts/fetch-live-notebook.ps1` → `scripts/live-decoded-notebook-content.py`) and copy the PPR queries verbatim. Never hardcode or assume the PPR SQL — the decoded notebook output is gitignored and must be re-fetched each run.
+
+**There are TWO PPR Warehouse (Sales) notebook queries — run BOTH:**
+
+1. **By Fiscal Month** (heading `PPR Warehouse based on Fiscalmonth(Sales)`): CTE of distinct `AssociationID` from `Map_Partner_Association_Sales` ⨝ `DimPartnerAssociation`; `SELECT FiscalMonthID, FiscalMonthName, SUM(SoldSeatsRevenue)` from `FactSalesPPR` ⨝ `DimIntegrationTime` ⨝ cte; `GROUP BY FiscalMonthID, FiscalMonthName`. Shared grain key = `FiscalMonthID`.
+2. **By Association Type** (heading `PPR Warehouse based on Association Type(Sales)`): CTE of distinct `AssociationID, AssociationName` from `Map_Partner_Association_Sales`; `SELECT AssociationName, SUM(SoldSeatsRevenue) AS BilledRevenue` from `FactSalesPPR` ⨝ cte, `LEFT JOIN DimIntegrationTime`; `GROUP BY AssociationName`. Shared grain key = `AssociationName`.
+
+When the user says `validate PPR Warehouse with Sales` (with no further qualifier), run both and emit a two-sheet Excel (`By FiscalMonth`, `By AssociationType`). If the user names one (`based on fiscal month` / `based on association type`), run only that one.
+
+Schema / table reference mapping (PPR → Sales):
+
+| PPR Warehouse reference | Sales (Source D) reference |
+| --- | --- |
+| Database `[PPR Warehouse]` | `[POSOT_Sales]` |
+| Schema `[Gold]` | latest dated `[SalesGoldYYYYMMDDnn]` |
+| Fact `[FactSalesPPR]` | `[FactSales]` (corresponding Sales fact) |
+| Time dim `[DimIntegrationTime]` | `[DimSalesTime]` (corresponding Sales time dim) |
+| `[Map_Partner_Association_Sales]` | same name |
+| `[DimPartnerAssociation]` | same name |
+
+Column/measure names stay the same across both sides (`AssociationID`, `SoldSeatsRevenue`, `FiscalMonthID`, `FiscalMonthName`).
+
+Rules:
+- Keep the query logic identical: same CTE, same join keys, same `GROUP BY` grain, same measure (e.g. `SUM(SoldSeatsRevenue)`).
+- Run BOTH PPR (Sales) notebook queries (fiscal month + association type) unless the user names a specific one.
+- Resolve the latest `SalesGoldYYYYMMDDnn` schema that contains all mapped tables; if one is missing, walk back to a previous schema or report the exact blocker.
+- Only substitute a table/column name when the PPR name does not exist in Sales; map by lineage role (fact↔fact, time-dim↔time-dim) and **report every substitution made**.
+- Do not re-introduce the standalone Sales query (with `DimBusiness` / `BusinessSummaryID` / `IsDisti` filters) for this mode — that is a different validation.
+- Output one `%Diff` per shared grain key (`FiscalMonthID` for query 1, `AssociationName` for query 2) per the global Percentage Difference Rule.
+- Runner script: `scripts/ppr-vs-sales-validate.ps1` (runs both queries, writes two-sheet `PPRWarehouse_vs_Sales_Validation.xlsx` + CSVs).
 
 ## Inputs
 
