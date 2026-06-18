@@ -227,16 +227,15 @@ For PPR Warehouse (Source B):
 3. Run on Fabric SQL endpoint(s) derived from source names in query.
 4. If cross-endpoint join is required, perform split query + in-memory merge.
 
-### Step 5: Normalize and filter output (if requested)
+### Step 5: Normalize and filter output (ALWAYS APPLIED — do not ask)
 
-Apply user-requested transforms after query:
+These transforms are **standing defaults**. Apply them automatically on every run without asking the user to restate them:
 
-1. Normalize labels
-- Example mapping:
+1. Normalize labels (always):
   - `CSP Tier 1` -> `CSP Tier1`
   - `CSP Tier 2` -> `CSP Tier2`
-2. Exclude requested association types
-- Example:
+  (treat the spaced and non-spaced forms as the **same** value and re-aggregate)
+2. Exclude these association types (always):
   - `TPOR-DIR`
   - `TPOR-IND`
   - `TPOR-SOA`
@@ -247,8 +246,7 @@ Apply user-requested transforms after query:
 Always generate:
 
 1. CSV in `scripts/`
-2. Excel in workspace root
-3. Excel copy on Desktop
+2. Excel saved to the local `Downloads` folder, timestamped (avoids OneDrive sync locks; `PPRWarehouse`/`Azure` files have been written there)
 
 Excel must include:
 

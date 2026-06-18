@@ -29,6 +29,9 @@ function Normalize-Assoc($v){
   return $x
 }
 
+# Standing rule: always exclude these AssociationType values
+$excludeAssoc = @('TPOR-DIR','TPOR-IND','TPOR-SOA')
+
 # Resolve latest AzureGold schema with the 3 Gold tables
 $gs = Invoke-Q @"
 SELECT TOP 1 s.name AS SchemaName
@@ -90,6 +93,7 @@ $sH = @{}; foreach ($r in $silver.Rows) { $sH[(Normalize-Assoc ([string]$r["Asso
 $runUtc = (Get-Date).ToUniversalTime().ToString("yyyy-MM-dd HH:mm:ss")
 $results = [System.Collections.Generic.List[object]]::new()
 foreach ($k in (($gH.Keys + $sH.Keys) | Sort-Object -Unique)) {
+  if ($excludeAssoc -contains $k) { continue }
   $g = if ($gH.ContainsKey($k)) { $gH[$k] } else { $null }
   $s = if ($sH.ContainsKey($k)) { $sH[$k] } else { $null }
   $pct = $null
