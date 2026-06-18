@@ -1,0 +1,138 @@
+version: 1.0
+updatedOn: 2026-02-23
+owner: copilotstudio-devops
+
+engines:
+  - id: semantic-kernel-cs
+    type: semantic-kernel-copilotstudio
+    strengths:
+      - Conversational evaluation of published Copilot Studio agents
+      - Threaded conversations with context preservation
+      - Response quality scoring and benchmarking
+      - Integration with Semantic Kernel plugins for custom scoring
+      - Knowledge retrieval and web search testing
+    constraints:
+      - Agent must be published and accessible via Copilot Studio
+      - Requires Entra ID app registration with CopilotStudio.Copilots.Invoke permission
+      - Streaming not supported (use get_response only)
+      - Python 3.10+ required
+    setup: "pip install semantic-kernel[copilotstudio]"
+    envVars:
+      - COPILOT_STUDIO_AGENT_APP_CLIENT_ID
+      - COPILOT_STUDIO_AGENT_TENANT_ID
+      - COPILOT_STUDIO_AGENT_ENVIRONMENT_ID
+      - COPILOT_STUDIO_AGENT_AGENT_IDENTIFIER
+      - COPILOT_STUDIO_AGENT_AUTH_MODE
+
+  - id: directline-api
+    type: bot-framework-directline
+    strengths:
+      - Raw conversation testing via WebSocket or HTTP GET
+      - Performance/load testing with response time measurement
+      - Works with both published agents and test channels
+      - No SDK dependency — pure HTTP/WebSocket
+    constraints:
+      - Requires Direct Line token or secret
+      - Async message pattern — must poll or read WebSocket for responses
+      - No built-in scoring — must implement response validation logic
+    endpoints:
+      startConversation: "https://directline.botframework.com/v3/directline/conversations"
+      generateToken: "https://directline.botframework.com/v3/directline/tokens/generate"
+      regionalEndpoints:
+        europe: "https://europe.directline.botframework.com/v3/directline"
+        unitedStates: "https://directline.botframework.com/v3/directline"
+
+  - id: dataverse-api
+    type: dataverse-odata-webapi
+    strengths:
+      - Full CRUD on bot and botcomponent Dataverse tables
+      - Query agent metadata, topics, knowledge sources, actions
+      - List all agents in an environment
+      - Read conversation transcripts and analytics
+    constraints:
+      - Requires Dynamics CRM user_impersonation permission
+      - Environment URL must be known
+      - Some fields are internal-only and not writable
+    baseEndpoint: "{environmentUrl}/api/data/v9.2"
+    keyEntities:
+      bots: "bots"
+      botComponents: "botcomponents"
+      botComponentCollections: "bot_botcomponentset"
+      conversationTranscripts: "conversationtranscripts"
+
+  - id: powerplatform-api
+    type: power-platform-rest-api
+    strengths:
+      - Admin operations — quarantine, unquarantine, delete agents
+      - Environment management
+      - Bot management at tenant level
+    constraints:
+      - Requires admin roles (Global Admin, AI Admin, or Power Platform Admin)
+      - CopilotStudio.AdminActions.Invoke scope required
+    baseEndpoint: "https://api.powerplatform.com"
+    keyOperations:
+      deleteAgent: "DELETE /copilotstudio/environments/{envId}/bots/{botId}/api/botAdminOperations?api-version=1"
+      quarantineBot: "POST /copilotstudio/environments/{envId}/bots/{botId}/api/botAdminOperations/quarantine?api-version=1"
+      unquarantineBot: "POST /copilotstudio/environments/{envId}/bots/{botId}/api/botAdminOperations/unquarantine?api-version=1"
+
+  - id: pac-cli
+    type: power-platform-cli
+    version: "2.2.1"  # Verified installed
+    strengths:
+      - Copilot listing and status checking (pac copilot list/status)
+      - Full agent template extraction (pac copilot extract-template) — exports full YAML with all topics, flows, cards
+      - Agent publishing (pac copilot publish)
+      - Agent creation from templates (pac copilot create)
+      - AI model listing and prediction (pac copilot model list/predict)
+      - Solution export/import (managed and unmanaged)
+      - Solution pack/unpack for source control
+      - Pipeline deployments
+      - Translation extraction/merge for localization
+    constraints:
+      - Requires Power Platform CLI installation (verified: v2.2.1)
+      - Solution operations need System Customizer role
+      - MCP server (pac copilot mcp --run) requires dotnet tool version
+    keyCommands:
+      # ── Auth ──
+      authCreate: "pac auth create --environment <env-url>"
+      authList: "pac auth list"
+      # ── Copilot Management (PROVEN WORKING) ──
+      copilotList: "pac copilot list --environment <env-id-or-url>"
+      copilotStatus: "pac copilot status --environment <env-id> --bot-id <bot-guid>"
+      copilotExtractTemplate: "pac copilot extract-template --environment <env-id> --bot <bot-id> --templateFileName <output.yaml> --overwrite"
+      copilotCreate: "pac copilot create --environment <env-id> --templateFileName <template.yaml>"
+      copilotPublish: "pac copilot publish --environment <env-id> --bot <bot-id-or-schema-name>"
+      copilotModelList: "pac copilot model list --environment <env-id>"
+      copilotModelPredict: "pac copilot model predict --environment <env-id> --model-id <model-id> --text <prompt>"
+      copilotExtractTranslation: "pac copilot extract-translation --environment <env-id> --bot <bot-id>"
+      copilotMergeTranslation: "pac copilot merge-translation --environment <env-id> --bot <bot-id>"
+      # ── Solution ALM ──
+      solutionList: "pac solution list --environment <env-id>"
+      solutionExport: "pac solution export --name <solution-name> --path <output-path>"
+      solutionExportManaged: "pac solution export --name <solution-name> --path <output-path> --managed"
+      solutionImport: "pac solution import --path <solution-path>"
+      solutionPack: "pac solution pack --zipfile <path> --folder <folder>"
+      solutionUnpack: "pac solution unpack --zipfile <path> --folder <folder>"
+      solutionClone: "pac solution clone --name <solution-name> --outputDirectory <dir>"
+
+  - id: context7-guidance
+    type: knowledge-guidance
+    provider: io.github.upstash/context7
+    strengths:
+      - Implementation guidance and patterns
+      - Fallback advisory for unfamiliar workflows
+      - Decision support when tooling is unavailable
+    constraints:
+      - Guidance only; not an execution engine
+      - Must be paired with another engine for action
+    libraryIds:
+      copilotStudio: /websites/learn_microsoft_en-us_microsoft-copilot-studio
+      powerPlatformApi: /websites/learn_microsoft_en-us_rest_api_power-platform
+      semanticKernel: /microsoft/semantic-kernel
+      powerPlatformCli: /websites/learn_microsoft_en-us_power-platform_developer_cli
+      dataverseApi: /websites/learn_microsoft_en-us_powerapps_developer_data-platform
+
+routePolicy:
+  defaultWriteOrder: [pac-cli, dataverse-api, powerplatform-api]
+  defaultReadOrder: [dataverse-api, pac-cli, semantic-kernel-cs]
+  defaultEvalOrder: [semantic-kernel-cs, directline-api]

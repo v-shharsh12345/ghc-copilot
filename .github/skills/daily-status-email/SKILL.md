@@ -1,16 +1,18 @@
 ---
-name: 'create-daily-status-email'
-description: 'Generate a comprehensive daily status email for your manager with Action Items and Key Meetings tables, pulling context from WorkIQ (Outlook, Teams, Calendar) and GitHub Copilot chat history. Automatically sends the email to the configured recipient.'
+name: 'daily-status-email'
+description: 'Generate a comprehensive daily status email for your manager with Key Meetings, Items Completed, Upcoming Milestones, Need Help, and LDP Goals sections, pulling context from WorkIQ (Outlook, Teams, Calendar) and GitHub Copilot chat history. Automatically sends the email to the configured recipient.'
 ---
 
 # Daily Status Email Generator
 
-Generate a professional daily status email summarizing your accomplishments, action items, and key meetings for your manager. **The email is automatically sent to the configured recipient after generation.**
+Generate a professional daily status email summarizing your key meetings, items completed, upcoming milestones, blockers, and LDP goals for your manager. **The email is automatically sent to the configured recipient after generation.**
 
 ## Version History
 
 | Date | Version | Description |
 |------|---------|-------------|
+| 2026-02-23 | 2.0 | Overhauled format: Key Meetings with Follow-up Actions, Items Completed with ADO links, Upcoming Milestones, Need Help, LDP Goals, status legend |
+| 2026-02-20 | 1.2 | Aligned format with actual email: added Time column, Blockers & Risks, Next Steps sections |
 | 2026-01-20 | 1.1 | Added auto-send capability with default recipient |
 | 2026-01-20 | 1.0 | Initial skill with action items and meetings tables |
 
@@ -23,7 +25,7 @@ Generate a professional daily status email summarizing your accomplishments, act
 | Setting | Value |
 |---------|-------|
 | **Default Recipient** | Resolve from `config/user-context.yaml` → `statusEmail.recipient` |
-| **Subject Format** | `{statusEmail.subjectPrefix}: Daily Status Update as of [MM/DD/YYYY]` |
+| **Subject Format** | `Daily status update for [Date]` (e.g., "Daily status update for Feb 2nd, 2026") |
 | **Auto-Send** | Enabled |
 
 ---
@@ -79,27 +81,50 @@ Review recent GitHub Copilot chat conversations for:
 - Development tasks completed
 - Analysis shared
 
-### Step 3: Synthesize Action Items
+### Step 3: Synthesize Key Meetings
 
-For each significant activity discovered:
+For each meeting attended, produce a table row with:
 
-1. **What was accomplished** - Specific deliverable or decision
-2. **Who was involved** - Key stakeholders
-3. **What's next** - Committed follow-ups or deadlines
+1. **Meeting** — Calendar event title (in square brackets with colon), e.g., `[Partner OSOT Sales, Consumption and CSP + PPR]: Daily Status Call`
+2. **Summary** — Detailed bullet-point list of discussion topics, then a `Follow up Actions:` sub-section with bullets prefixed by "I will..."
+3. **Attendees** — Short label for the attendee group (e.g., "PPR + CSP team", "GPS PMs")
 
-### Step 4: Synthesize Meeting Summary
+### Step 4: Synthesize Items Completed
 
-For each meeting attended:
+Gather all ADO work item IDs that were worked on today.
+List them as bullets in the first column (e.g., `• 19255`).
+In the second column, provide detailed bullet-point summaries of all work accomplished across those items.
 
-1. **Meeting name** - Official calendar title
-2. **Attendees** - All participants (comma-separated)
-3. **Follow-Up Tasks** - Bulleted list of action items, decisions, next steps
+### Step 5: Synthesize Upcoming Milestones
 
-### Step 5: Generate Status Email
+Identify upcoming milestones such as:
+- Weekly meetings
+- Critical releases
+- Customer in-person meetings
+- MBRs (Monthly Business Reviews)
+
+Format as a table with Milestones and Timeline/ETA columns.
+
+### Step 6: Synthesize Need Help
+
+Identify items where help is needed:
+- Blocked or waiting on external decisions
+- At risk of missing deadlines
+- Dependent on unresolved issues
+
+Format as a table with Topic, Summary, and Owner columns.
+
+### Step 7: Include LDP Goals
+
+Pull the user's LDP (Learning & Development Plan) goals.
+Format as a table with Goal, Timeline, Status, and Progress columns.
+Use status values from the legend: Not Started, On Track, Recoverable Delay, Irrecoverable delay, Completed, On Hold.
+
+### Step 8: Generate Status Email
 
 Use the output template below to format the final email.
 
-### Step 6: Review for Quality
+### Step 9: Review for Quality
 
 Before sending, review the email for:
 - Spelling and grammar errors
@@ -107,16 +132,18 @@ Before sending, review the email for:
 - Clear, concise language
 - Accurate names and dates
 - Professional tone
+- All sections present in correct order
+- Status legend at the bottom
 
-### Step 7: Send the Email
+### Step 10: Send the Email
 
 After generating the email content, automatically send it using the Mail MCP tool:
 
 ```
-Use: mcp_mcp_mailtools_SendEmailWithAttachmentsAsync
+Use: mcp_mcp_mailtools_SendEmailWithAttachments
 Parameters:
   to: ["<recipient from config/user-context.yaml>"]
-  subject: "Daily Status Email as of [MM/DD/YYYY]"
+  subject: "Daily status update for [Date]"
   body: [Generated email content in HTML format]
 ```
 
@@ -124,8 +151,8 @@ Parameters:
 ```json
 {
   "to": ["manager@contoso.com"],
-  "subject": "Daily Status Email as of 01/20/2026",
-  "body": "<h2>Action Items</h2><table>...</table><h2>Key Meetings</h2><table>...</table>"
+  "subject": "Daily status update for Feb 2nd, 2026",
+  "body": "<p>This is my daily status update for Feb 2nd, 2026:</p><p>Task 33500 CSP Reporting...</p><h2>Key Meetings:</h2><table>...</table><h2>Items Completed:</h2><table>...</table>..."
 }
 ```
 
@@ -135,25 +162,44 @@ Parameters:
 
 ```markdown
 To: <recipient from config/user-context.yaml>
-Subject: <subjectPrefix>: Daily Status Update as of [MM/DD/YYYY]
+Subject: Daily status update for [Date]
 
-## Tasks Completed
+This is my daily status update for [Month Day, Year]:
+Task [ADO ID] [Task Title]
 
-• [Concise task with outcome and next steps]
-• [Task with stakeholders and timeline]
+Key Meetings:
+| Meeting | Summary | Attendees |
+|---------|---------|----------|
+| [Meeting Category]: [Meeting Title] | • [Discussion point 1]<br>• [Discussion point 2]<br>• [Discussion point N]<br>Follow up Actions:<br>• I will [action 1].<br>• I will [action 2].<br>• I will [action N]. | [Attendee group] |
 
-## Key Meetings
+Items Completed:
+| ADO Link / Title | Summary |
+|------------------|--------|
+| • [ADO ID 1]<br>• [ADO ID 2]<br>• [ADO ID N] | • [Detailed accomplishment 1]<br>• [Detailed accomplishment 2]<br>• [Detailed accomplishment N] |
 
-| Meeting | Key Participants | Follow-Up Tasks |
-|---------|------------------|-----------------|
-| [Meeting Name] | [Name1], [Name2], [Name3] | [Task]; [Decision] |
+Upcoming Milestones: (Can be weekly meeting, some critical release, customer in-person meeting, MBR, etc.)
+| Milestones | Timeline/ETA |
+|-----------|-------------|
+| [Milestone name] | [Month Year] |
+
+Need Help:
+| Topic | Summary | Owner |
+|-------|---------|------|
+| [Topic] | [Summary] | [Owner] |
+
+LDP Goals:
+| Goal | Timeline | Status | Progress |
+|------|----------|--------|----------|
+| [Goal name] | [Month Year] | [Status] | [Progress] |
+
+     Not Started  	   On Track  	   Recoverable Delay	    Irrecoverable delay 	  Completed 	     On Hold  
 ```
 
 ---
 
 ## Extraction Rules
 
-### Action Item Extraction
+### Items Completed Extraction
 
 | Source | What to Extract |
 |--------|-----------------|
@@ -162,44 +208,72 @@ Subject: <subjectPrefix>: Daily Status Update as of [MM/DD/YYYY]
 | **Teams chat** | Quick decisions, confirmations, coordination completed |
 | **Meeting** | Decisions made, tasks assigned, deadlines agreed |
 | **Copilot chat** | Code analyzed, solutions provided, technical issues resolved |
+| **ADO work items** | Work item IDs actively worked on today — list as bullets |
 
 ### Meeting Extraction
 
 | Field | Extraction Logic |
 |-------|------------------|
-| **Meeting** | Calendar event title |
-| **Attendees** | All participants from calendar invite |
-| **Follow-Up Tasks** | Decisions, assigned actions, commitments (from notes, transcript, or recap) |
+| **Meeting** | Calendar event title — format as `[Category]: Title` |
+| **Summary** | Detailed bullet-point list of discussion topics, followed by `Follow up Actions:` sub-section with "I will..." prefixed bullets |
+| **Attendees** | Short group label (e.g., "PPR + CSP team", "GPS PMs") |
+
+### Upcoming Milestones Extraction
+
+| Source | What to Extract |
+|--------|------------------|
+| **Meetings** | Upcoming deadlines, sprint dates, release milestones |
+| **Emails** | Scheduled reviews, delivery dates |
+| **ADO** | Sprint end dates, milestone work items |
+
+### Need Help Extraction
+
+| Source | What to Extract |
+|--------|------------------|
+| **Meetings** | Blocked decisions, unresolved issues, slipped timelines |
+| **Emails** | Escalations, dependency requests, pending approvals |
+| **Teams chats** | Flagged risks, resource constraints, technical blockers |
+
+### LDP Goals Extraction
+
+| Source | What to Extract |
+|--------|------------------|
+| **User context** | Learning goals, certification targets, training deadlines |
+| **Previous emails** | Last reported LDP status and progress |
 
 ---
 
 ## Writing Guidelines
 
-### Action Items Style
+### Items Completed Style
 
-- **Lead with the action verb** (Finalized, Investigated, Resolved, Agreed, Confirmed, Validated, Shared)
+- **Lead with the action verb** (Reviewed, Investigated, Resolved, Validated, Confirmed, Shared, Continued, Coordinated)
 - **Include context** - What problem was solved, what decision was made
 - **Name stakeholders** - Who you coordinated with
 - **State outcome** - What was delivered or committed
 - **Mention timeline** - When it will be done (if applicable)
 
 **Good Example:**
-> Finalized schema updates for eligibility reports, agreeing to rename confusing fields and split related views. Committed to complete changes in the current sprint and validate dashboard promotion this week.
+> • Reviewed and responded to multiple CSP revenue and authorization escalation threads, providing detailed analysis on tenant attribution gaps and recommending corrective mappings.
+> • Continued maintaining high visibility communication with Microsoft stakeholders on CSP status derivation issues.
 
 **Bad Example:**
 > Worked on schema stuff for reports.
 
-### Follow-Up Tasks Style
+### Meeting Summary Style
 
-- Use bullet points (•)
-- Start with action verb
+- Use bullet points (•) for each discussion topic
+- Be detailed and specific about what was discussed
+- Include a `Follow up Actions:` sub-section after the discussion points
+- Each follow-up action starts with "I will"
 - Be specific about deliverables
-- Include owners if assigned to others
 
 **Good Example:**
-> • Clarified schema for eligibility fields and agreed to split related report views.
-> • Discussed adding count card and dynamic dashboard features.
-> • Reviewed phased rollout for performance measurement.
+> • Discussed ongoing data validation and logic issues identified in recent CSP production runs.
+> • Reviewed missing records associated with blank tenant scenarios.
+> Follow up Actions:
+> • I will continue validating tenant to MPN mapping fixes in Azure.
+> • I will coordinate with CFAR on anniversary date logic alignment.
 
 ---
 
@@ -223,11 +297,16 @@ Subject: <subjectPrefix>: Daily Status Update as of [MM/DD/YYYY]
 
 1. Query WorkIQ for today's calendar, emails, and Teams chats
 2. Review any recent Copilot chat history for technical work
-3. Synthesize 5-10 action items from all sources
-4. Extract all meetings with attendees and follow-ups
-5. Format using the output template
-6. Present the complete email ready to send
-7. Confirm and send
+3. Determine the primary ADO task ID and title for the day
+4. Extract all meetings with summary bullets, follow-up actions, and attendees
+5. Gather ADO work item IDs and synthesize detailed items completed
+6. Identify upcoming milestones with timeline/ETA
+7. Identify any items needing help (topic, summary, owner)
+8. Include LDP goals with status and progress
+9. Add status legend at the bottom
+10. Format using the output template
+11. Present the complete email ready to send
+12. Confirm and send
 
 ---
 
@@ -260,37 +339,49 @@ Filter action items and meetings to only those related to Azure Accelerate, then
 ## Sample Output
 
 ```
-Subject: Jane Doe: Daily Status Update as of 01/20/2026
+Subject: Sai Chaitanya Chaganti: Daily Status Report - 2/20/2026
 
 ---
 
 ## Tasks Completed
 
-• Resolved data discrepancy in staging pipeline; validated output and confirmed stability
-• Created user stories for upcoming schema updates; UI changes targeted for next sprint
-• Compared validation metrics across environments (90% match); documenting in requirements doc
-• Formed working group for data modeling standardization
-• Automating refresh orchestration across key tables by end of week
-• Agreed on incremental refresh logic for main ETL pipeline
-• Proposed automated Dev-to-UAT deployment workflow
-• Investigated data access gaps for reporting criteria
+• Reviewed and validated **CSP Exemption Logic Dev Build** — Received dev build from Shivangi Chaudhary (MAQ) with report link, validation Excel, and PR #6312 for exemption logic updates. Sign-off review in progress.
+• Confirmed weekly status for **CSP Eligibility & Offboarding Reporting** — Overall status: On Track. UAT build shared today (02/20); exemption logic standardized and consolidated. ACR Solution Area analysis initiated. Prod target: 02/27.
+• Clarified **FY27 Channel Motion logic** position across multiple teams — Confirmed no channel motion logic change is finalized for FY27. Communicated FYI-only posture to CDS and GPSHub teams. Earliest possible timeline for changes: May–June.
+• Agreed to move **Power BI refresh for offboarding** from monthly to weekly cadence — Coordinated with Vamsidhar Kavi and CSP Offboarding team. Weekly refresh (Monday mornings) to support T0 notification timelines.
+• Provided architectural guidance on **DimUnifiedPartner usage** — Clarified that DimUnifiedPartner is GPSMart-specific and not a general-purpose partner dimension.
+• Resolved **Channel Motion Logic documentation access issues** — Provided corrected SharePoint share-enabled links after access issues were flagged.
+• Coordinated on **ACR data clarification for Solution Area grain** — Engaged on technical thread regarding solution area mapping derivation from AIP tables.
+• Reviewed **CSP Authorization automation decision request** — Tracked urgent decision request on Support Plan dependency. Option 1 (Partial Automation) recommended.
 
 ---
 
 ## Key Meetings
 
-| Meeting | Attendees | Follow-Up Tasks |
-|---------|-----------|-----------------|
-| Team Handover Sync | Jane, Alice, Bob | • Review reporting logic • Finalize mapping rules |
-| Daily Standup | Jane, Carol, Dave, Eve, Frank | • Stability confirmation email (Carol) • Schema review (Dave) • PR review (Eve) |
-| Project Huddle | Jane, Team | • Update tracking notes • Data refresh validation |
-| Requirements Workshop | Jane, Team | • Data access follow-up • Bug tracking pending (Frank) |
-| Cross-Team Governance | Jane, Stakeholders | • Policy update finalized • Investigation framework agreed |
+| Meeting | Time | Key Participants | Follow-Up Tasks |
+|---------|------|------------------|-----------------|
+| **Offboarding Critical Open Issues & DCRs — Daily Triage** | 8:30–9:30 AM | Savvy Him, Hema Sathyanarayanan, Molly Halfin, Nick Thain, Prasham Ajmera, Anshul Gupta | • Go/No-Go decision pushed to next Friday due to unresolved blockers<br>• Suspend bug fix ETA: Feb 23 EOD; revoke bug regressed (no ETA)<br>• Clean test accounts needed for suspend/revoke validation |
+| **CSP Partner Offboarding** | 10:30–11:00 AM | Savvy Him, Pavan Marella, Sai Krishna Manduva, Kexin Chi, Ryan McDonald, Hans Loland, Nick Thain | • Implement weekly Power BI + OCI refresh cadence (Monday mornings)<br>• Resolve data count discrepancies between Power BI and OCI<br>• Automation work paused due to code freeze; resume after UAT |
+| **Channel Motion Updates – Planning Alignment** | 11:00–11:30 AM | Savvy Him, Vasagiri Guruteja, Prasanna Polisetti, Pedro Dagnino, Brittany Lewis, Sanjay Kondrakunta | • No channel motion logic change for FY27 at this time<br>• Provide FY23 Q4 actuals by mid-March<br>• Review shared channel logic flow and update user stories |
+| **GPS Cross Team Huddle** | 11:00–11:25 AM | Kexin Chi, Shane Fretwell, Shivaraj Akula, Amar Sadashiva, Arnav Loonker, Annie French, Pallabi Majumdar | • Cross-team coordination sync (no transcript captured) |
 
-## Training
+---
 
-| Course | Due Date | Status
-|--------| ---------| ------
+## Blockers & Risks
+
+• **CSP Authorization Automation Blocked** — Support Plan data unreliable; manual reviews continue until GA of UfP. Executive decision pending on Option 1 (Partial Automation).
+• **Offboarding Go/No-Go Delayed** — Pushed to next Friday. Suspend bug fix targeting Feb 23; revoke bug regressed with no ETA.
+• **Automation Code Freeze** — Automated case creation paused; expected to resume after UAT readiness.
+
+---
+
+## Next Steps
+
+• Complete sign-off review for **Exemption Logic Dev Build (PR #6312)**
+• Validate and prepare for **Prod deployment (target: 02/27)**
+• Begin **T90/T60/T30 offboarding actions** next Monday
+• Deliver **FY23 Q4 actuals** for Planning alignment by mid-March
+• Monitor suspend/revoke bug fixes and reassess Go/No-Go timeline
 ---
 ```
 
@@ -321,8 +412,9 @@ Subject: Jane Doe: Daily Status Update as of 01/20/2026
                              ▼
 ┌─────────────────────────────────────────────────────────────────┐
 │                    OUTPUT GENERATION                            │
-│  • Action Items table (numbered, detailed)                      │
-│  • Key Meetings table (name, attendees, follow-ups)             │
-│  • Professional email format                                    │
+│  • Tasks Completed (bold topic + detailed description)          │
+│  • Key Meetings table (name, time, participants, follow-ups)    │
+│  • Blockers & Risks (bold topic + status description)           │
+│  • Next Steps (forward-looking actions with deadlines)          │
 └─────────────────────────────────────────────────────────────────┘
 ```

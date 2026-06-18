@@ -10,19 +10,29 @@ desktop.ini
 
 # User-specific config (created from .template.yaml files)
 config/user-context.yaml
-
-# Sensitive workspace/environment catalogs (created from .template files)
-.github/skills/fabric-devops/config/workspace-catalog.yaml
-.github/skills/databricks-devops/config/workspace-catalog.yaml
-.github/skills/compare-semantic-models/dataset-catalog.yaml
-.vscode/mcp.json
+config/user-context.template copy.yaml
 
 # Sensitive config
 # **/*-secrets.yaml
 # **/*-credentials.yaml
 
-# One-time release bootstrap script
-create-releases.ps1
+# ── Production data outputs (never share — contain real revenue/sales data) ──
+*.xlsx
+scripts/*.csv
+excel_content.json
+excel_detailed.txt
+excel_readable.txt
 
-# Playwright MCP browser automation artifacts
+# ── Personal memory (keep templates, exclude real notes) ──
+memory/MEMORY.md
+memory/daily/
+memory/session/
+memory/knowledgebase/
+!memory/MEMORY.template.md
+
+# ── Local/temp artifacts ──
+.tmp/
 .playwright-mcp/
+scripts/live-decoded-*
+scripts/decoded-*
+scripts/*.json

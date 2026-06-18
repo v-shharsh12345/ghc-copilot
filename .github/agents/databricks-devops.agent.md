@@ -2,7 +2,7 @@
 name: databricks-devops
 description: Databricks DevOps subagent — dispatches to self-declaring capability skills for development, operations, diagnostics, data management, security, validation, and promotion across DEV/UAT/PROD Databricks environments. Executes via Databricks CLI (terminal), Python SDK scripts, and Context7 guidance.
 argument-hint: 'Goal + environment + workspace (example: "Deploy notebook X to UAT cluster, then run job health checks")'
-user-invokable: false
+user-invokable: true
 tools: ['io.github.upstash/context7/resolve-library-id', 'io.github.upstash/context7/get-library-docs', 'read/readFile', 'search/fileSearch', 'search/textSearch', 'web/fetch', 'terminal/runInTerminal', 'todo']
 ---
 

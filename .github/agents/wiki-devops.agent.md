@@ -2,7 +2,7 @@
 name: wiki-devops
 description: Wiki Documentation subagent — generates comprehensive, business-context-rich wiki pages for Power BI reports by combining semantic model analysis, M365 business context, per-visual Playwright screenshots, and ADO wiki publishing.
 argument-hint: 'Report name + wiki target (example: "Create wiki for Activities Utilization RoB report and push to Partner Incentives wiki")'
-user-invokable: false
+user-invokable: true
 tools: ['powerbi-remote/ExecuteQuery', 'powerbi-remote/GetSemanticModelSchema', 'powerbi-remote/GenerateQuery', 'powerbi-remote/GetReportMetadata', 'powerbi-remote/DiscoverArtifacts', 'playwright/browser_navigate', 'playwright/browser_click', 'playwright/browser_snapshot', 'playwright/browser_take_screenshot', 'playwright/browser_evaluate', 'playwright/browser_run_code', 'playwright/browser_wait_for', 'playwright/browser_press_key', 'read/readFile', 'search/fileSearch', 'search/textSearch', 'edit/editFile', 'create/createFile', 'terminal/runInTerminal', 'todo', 'agent/runSubagent']
 agents: ['chief-of-staff', 'fabric-devops']
 ---
@@ -98,7 +98,7 @@ This is the most complex stage. Follow this exact protocol:
 #### 3.1 Navigate and Authenticate
 
 1. Navigate to the report URL (PROD workspace preferred).
-2. If authentication prompt appears, click the Microsoft account (your authenticated identity).
+2. If authentication prompt appears, click the Microsoft account (`v-arloonker@microsoft.com`).
 3. Wait for the report to fully load (wait for a known visual title text).
 
 #### 3.2 Prepare the Viewport

@@ -1,0 +1,116 @@
+version: 1.0
+updatedOn: 2026-02-23
+
+# =============================================================================
+# Environment Catalog — Copilot Studio / Power Platform environments
+# =============================================================================
+# THIS FILE IS AUTO-POPULATED AT RUNTIME — DO NOT HARDCODE VALUES.
+#
+# When a user provides a Copilot Studio URL or environment ID, the agent:
+#   1. Parses the URL to extract ENVIRONMENT_ID and BOT_ID
+#   2. Runs `pac copilot list --environment <ENVIRONMENT_ID>` to discover all agents
+#   3. Runs `pac solution list --environment <ENVIRONMENT_ID>` to discover solutions
+#   4. Runs `pac copilot status --environment <ENVIRONMENT_ID> --bot-id <BOT_ID>` per agent
+#   5. Populates the session context with the results (NOT this file)
+#
+# This file only stores the SCHEMA and DISCOVERY PROCEDURE.
+# Actual environment data lives in session memory, populated on first use.
+
+# =============================================================================
+# URL Parsing — Extract IDs from Copilot Studio URLs
+# =============================================================================
+# Users provide URLs in this format:
+#   https://copilotstudio.preview.microsoft.com/environments/{ENV_ID}/bots/{BOT_ID}/overview
+#
+# Parsing rules:
+#   1. Split URL by '/'
+#   2. ENV_ID  → segment immediately after 'environments'
+#   3. BOT_ID  → segment immediately after 'bots'
+#   4. Both are GUIDs — pass directly to PAC CLI --environment / --bot-id flags
+#
+# Alternate URL patterns:
+#   https://copilotstudio.microsoft.com/environments/{ENV_ID}/bots/{BOT_ID}/...
+#   https://copilotstudio.preview.microsoft.com/environments/{ENV_ID}/bots/{BOT_ID}/canvas
+#   https://copilotstudio.preview.microsoft.com/environments/{ENV_ID}/bots/{BOT_ID}/topics
+#
+# All follow the same /environments/{id}/bots/{id}/ pattern.
+
+# =============================================================================
+# Auto-Discovery Procedure
+# =============================================================================
+# When a user provides an environment (URL, ID, or label):
+#
+# Step 1: Verify auth
+#   pac auth list
+#   → If no active auth, prompt: pac auth create --environment <env-url>
+#
+# Step 2: Discover agents
+#   pac copilot list --environment <ENV_ID>
+#   → Returns: Name, Copilot ID, Component State, Is Managed, Solution ID, Status Code, State Code
+#
+# Step 3: Check specific agent (if BOT_ID provided)
+#   pac copilot status --environment <ENV_ID> --bot-id <BOT_ID>
+#   → Returns: Provisioning status
+#
+# Step 4: Discover solutions
+#   pac solution list --environment <ENV_ID>
+#   → Returns: Unique Name, Friendly Name, Version, Managed status
+#
+# Step 5: Deep inspection (if requested)
+#   pac copilot extract-template --environment <ENV_ID> --bot <BOT_ID> --templateFileName ./temp/<agent-name>.yaml --overwrite
+#   → Returns: Full YAML with all topics, flows, triggers, adaptive cards, settings
+#
+# Step 6: Store in session context
+#   Save discovered data to memory/session/copilot-studio-{ENV_ID}.md
+#   Future operations in this session reuse the cached discovery.
+
+# =============================================================================
+# Environment Entry Schema (for reference — actual data is runtime-populated)
+# =============================================================================
+# environments:
+#   - label: "<user-chosen-label>"             # e.g., "DEV", "PROD", "Staging"
+#     environmentId: "<GUID>"                  # Extracted from URL or provided directly
+#     studioUrl: "<full-copilot-studio-url>"   # Original URL the user provided
+#     writeAllowed: <true|false>               # true for non-PROD, false for PROD
+#     agents:                                  # AUTO-POPULATED from `pac copilot list`
+#       - displayName: "<agent-name>"
+#         botId: "<GUID>"
+#         componentState: "<Published|Draft>"
+#         isManaged: <true|false>
+#         stateCode: "<Provisioned|Deprovisioned>"
+#     solutions:                               # AUTO-POPULATED from `pac solution list`
+#       - uniqueName: "<solution-unique-name>"
+#         friendlyName: "<display-name>"
+#         version: "<X.Y.Z.W>"
+#         managed: <true|false>
+
+# =============================================================================
+# Write Permission Rules
+# =============================================================================
+# The agent determines write permissions based on user declaration:
+#   - User says "this is DEV" or "this is my dev environment" → writeAllowed: true
+#   - User says "this is PROD" or "this is production" → writeAllowed: false
+#   - If user doesn't specify, ASK before any write operation
+#   - If the agent in the environment is Managed (Is Managed = true),
+#     treat it as PROD-like (restrict writes, require solution import for changes)
+#
+# Heuristics for auto-detecting PROD:
+#   - Agent shows Is Managed = true → likely PROD (imported via managed solution)
+#   - Agent shows Is Managed = false → likely DEV/UAT (authored directly)
+#   - Multiple environments sharing same agent name but different managed status
+#     confirms a DEV→PROD ALM pattern
+
+# =============================================================================
+# Authentication Notes
+# =============================================================================
+# PAC CLI uses a single auth profile that can access multiple environments.
+# No per-environment auth is needed — just switch with --environment flag.
+#
+# To authenticate:
+#   pac auth create --environment <environment-url-or-id>
+#
+# To verify:
+#   pac auth list
+#
+# The authenticated user must have at least Maker or System Customizer role
+# in the target Power Platform environment.

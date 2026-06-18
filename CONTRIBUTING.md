@@ -20,7 +20,6 @@ Guidelines for adding or modifying agents, skills, config, and MCP servers in th
 - [Frontmatter Reference](#frontmatter-reference)
 - [Safety & Guardrails](#safety--guardrails)
 - [Testing Your Changes](#testing-your-changes)
-- [Evaluation Framework](#evaluation-framework)
 - [Documentation](#documentation)
 - [Common Mistakes](#common-mistakes)
 
@@ -43,8 +42,6 @@ copilot-agents/
 │   ├── 3-Use-Cases-and-ROI.md
 │   ├── 4-Setup-Guide.md
 │   └── agents/                        ← Per-agent deep-dive docs
-│       ├── chief-of-staff/
-│       │   └── architecture.md
 │       └── fab-devops/
 │           └── architecture.md
 ├── .vscode/
@@ -53,15 +50,8 @@ copilot-agents/
     ├── agents/                        ← Agent definitions (.agent.md)
     │   ├── orchestrator.agent.md
     │   ├── chief-of-staff.agent.md
-    │   ├── ado-devops.agent.md
     │   ├── fabric-devops.agent.md
-    │   ├── databricks-devops.agent.md
-    │   ├── wiki-devops.agent.md
-    │   └── composite-patterns.md      ← Multi-agent composition reference
-    ├── evaluations/                   ← Agent evaluation framework
-    │   ├── EVAL-FRAMEWORK.md
-    │   ├── baseline.yaml
-    │   └── eval-manifest.yaml
+    │   └── databricks-devops.agent.md
     └── skills/                        ← Skill definitions (SKILL.md)
         ├── create-task/SKILL.md
         ├── daily-status-email/SKILL.md
@@ -85,10 +75,7 @@ copilot-agents/
         ├── fabric-devops-operate-monitor/SKILL.md
         ├── fabric-devops-*/SKILL.md     ← Capability skills
         ├── databricks-devops/           ← Shared resource layer
-        ├── databricks-devops-*/SKILL.md ← Capability skills
-        ├── ado-board-hygiene/SKILL.md   ← ADO board hygiene skill
-        ├── wiki-devops/SKILL.md         ← Wiki operations skill
-        └── agent-eval-runner/SKILL.md   ← Evaluation runner skill
+        └── databricks-devops-*/SKILL.md ← Capability skills
 ```
 
 **Key rules:**
@@ -602,67 +589,14 @@ There are no automated tests — all testing is done interactively in VS Code Co
 
 ---
 
-## Evaluation Framework
-
-The repo includes an evaluation framework for testing agent routing, skill activation, and interaction quality. All evaluation files live in `.github/evaluations/`.
-
-### Structure
-
-| File | Purpose |
-| :--- | :--- |
-| `EVAL-FRAMEWORK.md` | Scoring dimensions, weights, and pass thresholds |
-| `baseline.yaml` | Baseline scores from dry-run classification runs |
-| `eval-manifest.yaml` | Test scenario definitions (54 scenarios across 12 categories) |
-
-### Scoring Dimensions (v2)
-
-| Dimension | Weight |
-| :--- | :--- |
-| Routing Accuracy | 22% |
-| Skill Activation | 18% |
-| Prompt Quality | 15% |
-| Execution Success | 10% |
-| Guardrail Enforcement | 10% |
-| Context Verification | 10% |
-| Write Gate | 10% |
-| Interaction Quality | 5% |
-
-### Running Evaluations
-
-```
-@orchestrator Run the evaluation suite
-```
-
-Or run a specific category:
-```
-@orchestrator Run the routing accuracy evaluations
-```
-
-### Adding New Test Scenarios
-
-1. Add a scenario entry to `eval-manifest.yaml` with `id`, `category`, `prompt`, `expectedBehavior`, `difficulty`, and `criteria`.
-2. Run the eval suite to generate a baseline score for the new scenario.
-3. Update `baseline.yaml` with the new scenario's score (or mark as `score: null` for pending baselining).
-
-### When to Update Evaluations
-
-| Change | Update |
-| :--- | :--- |
-| New orchestrator routing behavior | Add test scenarios to `eval-manifest.yaml`, rebaseline |
-| New agent or skill | Add routing + skill activation scenarios |
-| Modified safety rules | Add guardrail enforcement scenarios |
-| Changed scoring weights | Update `EVAL-FRAMEWORK.md` and `eval-manifest.yaml` thresholds |
-
----
-
 ## Documentation
 
 ### When to update docs
 
 | Change | Update |
 | :--- | :--- |
-| New agent | `README.md` (Agents table), `docs/2-Architecture.md` (Agents section + diagram), evaluation manifest |
-| New skill | `README.md` (Skills table), `docs/2-Architecture.md` (Skills section), evaluation manifest |
+| New agent | `README.md` (Agents table), `docs/2-Architecture.md` (Agents section + diagram) |
+| New skill | `README.md` (Skills table), `docs/2-Architecture.md` (Skills section) |
 | New MCP server | `docs/2-Architecture.md` (MCP Servers table), `docs/4-Setup-Guide.md` (MCP reference + auth) |
 | New config field | `config/user-context.template.yaml`, `docs/4-Setup-Guide.md` (Personal Config section) |
 | New capability skill | Parent agent's Skill Activation Table, `docs/2-Architecture.md`, agent-specific docs under `docs/agents/` |
@@ -690,5 +624,3 @@ Or run a specific category:
 | Ambiguity between skills with overlapping triggers | Add an `ambiguityRules:` entry to `intent-router.yaml` and declare `## Ambiguity Rules` in the skill. |
 | Creating per-skill safety rules that contradict shared policy | Reference `modules/safety-guardrails.md` — don't create independent PROD write permissions. |
 | No version history entry | Every change to an agent or skill must add a row to the Version History table. |
-| Not updating evaluation manifest | New agents/skills need corresponding test scenarios in `eval-manifest.yaml`. |
-| Skipping rebaseline after orchestrator changes | After modifying routing, scoring, or interaction behaviors, run the eval suite and update `baseline.yaml`. |

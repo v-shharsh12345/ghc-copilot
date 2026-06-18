@@ -1,0 +1,27 @@
+# QMD Collection Definitions
+# These collections are created by scripts/setup-memory.ps1
+# and indexed by the QMD MCP server for searchable memory.
+
+version: 1.0
+updatedOn: 2026-03-04
+
+collections:
+  - name: memory-root
+    description: "MEMORY.md and daily context logs — decisions, progress, blockers, next steps."
+    path: memory
+    mask: "**/*.md"
+
+  - name: session-checkpoints
+    description: "Session checkpoint files from WorkFast §5.5 — cross-request context preservation."
+    path: memory/session
+    mask: "*.md"
+
+  - name: knowledgebase
+    description: "Curated knowledge articles — Fabric, Databricks, ADO, architecture decisions, runbooks."
+    path: memory/knowledgebase
+    mask: "**/*.md"
+
+  - name: skills-docs
+    description: "All skill definitions and procedures — capability triggers, engine preferences, workflows."
+    path: .github/skills
+    mask: "**/SKILL.md"

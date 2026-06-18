@@ -142,52 +142,6 @@ score(agent) = (matched_triggers / agent_total_triggers) × trigger_weight
 
 ---
 
-## Orchestrator v2 Behaviors
-
-The orchestrator includes several interaction and safety behaviors that govern how it processes requests beyond basic routing.
-
-### Interaction Style
-
-The orchestrator operates as a **collaborative, guidance-driven** system — not an autonomous executor. It presents plans before acting on non-trivial requests, surfaces assumptions explicitly, and seeks confirmation before write actions.
-
-| Behavior | Description |
-| :--- | :--- |
-| **Draft before execute** | For non-trivial requests, present execution plan and wait for confirmation. Trivial = single-agent read-only with no ambiguity. |
-| **Surface assumptions** | When filling in gaps (environment, entity, time range), list assumptions as a numbered list. For read-only + low-risk, note and proceed. For write actions, list and wait. |
-| **Be specific** | Reference exact entity names, workspace IDs, environments, and dates. |
-| **Once guided, move fast** | After confirmation, execute without re-asking. Parallelize aggressively. |
-
-### Context Verification Protocol
-
-Before routing non-trivial requests, the orchestrator verifies understanding to prevent wasted subagent calls.
-
-**Must verify:** Write/mutate actions, ambiguous scope, multi-agent requests, 2+ assumptions.
-**Skip verification:** Single-agent read-only with clear scope, fully specified requests, follow-ups referencing prior confirmed context.
-
-### Write Gate
-
-Any action that creates, modifies, deletes, deploys, promotes, or sends must pass a write gate with a pre-flight summary showing action, target, irreversibility level, and side effects.
-
-| Level | Examples | Behavior |
-| :--- | :--- | :--- |
-| **LOW** | Create ADO task, draft email, create DEV notebook | Brief confirmation |
-| **MEDIUM** | Deploy to UAT, send email, promote pipeline | Full pre-flight, wait for explicit "go" |
-| **HIGH** | Delete items, deploy to PROD, bulk state transitions | Pre-flight + irreversibility warning + explicit "yes, proceed" |
-
-### Direct Skill Execution
-
-For lightweight, single-skill, read-only tasks (e.g., catalog lookups, agent registry queries), the orchestrator may execute directly without dispatching a subagent, reducing overhead.
-
-### Aggressive Parallelism
-
-Default stance: parallelize unless blocked. Independent subtasks targeting different agents, same agent with different environments/entities, or any combination of read-only subtasks run in parallel.
-
-### Session Checkpointing
-
-After significant actions (multi-agent workflows, write actions), the orchestrator saves key results to `/memories/session/` to preserve context across long conversations.
-
----
-
 ## Multi-Agent Composition Patterns
 
 The orchestrator recognizes composite workflows and auto-sequences them:
@@ -337,8 +291,8 @@ When the Fabric DevOps agent receives a request from the orchestrator, it runs t
   │                                      │
   │  Keyword "DEV" found                 │
   │  → workspace-catalog.yaml lookup     │
-  │  → Contoso Analytics [DEV]          │
-  │  → ID: xxxxxxxx-xxxx-...            │
+  │  → GPS Investments & Incentives [DEV]│
+  │  → ID: df9b352f-ff95-...            │
   │  → writeAllowed: true                │
   └────────────────┬─────────────────────┘
                    │
@@ -390,35 +344,6 @@ When the Fabric DevOps agent receives a request from the orchestrator, it runs t
   │ • Next: Re-create shortcut, re-run   │
   └──────────────────────────────────────┘
 ```
-
-### Ambiguity Resolution — When Intents Compete
-
-Some requests match multiple skills. The system uses declared ambiguity rules:
-
-### Fabric Data Access Routing
-
-The Fabric DevOps agent has three data access paths. Using the wrong path causes failures or unnecessary complexity.
-
-| Path | Tools | Use For | Never Use For |
-| :--- | :--- | :--- | :--- |
-| **SQL Endpoint** | `mssql_connect`, `mssql_run_query`, `mssql_list_tables` | Querying table data, schema inspection, row counts, data validation | Creating items, uploading files |
-| **OneLake Direct** | `onelake_item_list`, `onelake_item_create`, `onelake_upload_file` | Creating/updating items, file uploads, workspace inventory | Querying table data |
-| **Power BI Remote** | `ExecuteQuery`, `GetSemanticModelSchema`, `GetReportMetadata` | DAX queries, semantic model inspection, report metadata | Lakehouse operations, file operations |
-
-**Quick rule:** READ data = SQL endpoint. WRITE/CREATE items = OneLake. Semantic models = Power BI Remote.
-
-Full decision matrix: [develop.md — Data Access Decision Matrix](../skills/fabric-devops/modules/develop.md#data-access-decision-matrix)
-
-### Notebook Deployment Protocol
-
-Notebook operations are the most failure-prone Fabric operations. The agent follows a strict protocol:
-
-1. **Prerequisites checklist** — verify workspace, lakehouse, capacity, Spark environment, library dependencies
-2. **Create vs update determination** — list existing items first, then choose CREATE or UPDATE path
-3. **Structured fallback** — when upload fails, fall back to Context7 guidance instead of retrying the same call
-4. **No automatic execution** — never run a notebook as a smoke test unless explicitly asked
-
-Full protocol: [develop.md — Notebook Deployment Protocol](../skills/fabric-devops/modules/develop.md#notebook-deployment-protocol)
 
 ### Ambiguity Resolution — When Intents Compete
 
@@ -713,15 +638,15 @@ The workspace catalog maps friendly environment names to Fabric workspace IDs an
 ```yaml
 workspaces:
   - environment: DEV
-    name: "Contoso Analytics [DEV]"
-    workspaceId: "xxxxxxxx-xxxx-..."
+    name: "GPS Investments & Incentives [DEV]"
+    workspaceId: "df9b352f-..."
     writeAllowed: true                    # ← Skills check this before writes
-    defaultLakehouseName: "MainLakehouse"
-    defaultLakehouseId: "yyyyyyyy-yyyy-..."
+    defaultLakehouseName: "IncentiveReporting"
+    defaultLakehouseId: "5f103236-..."
 
   - environment: PROD
-    name: "Contoso Analytics [PROD]"
-    workspaceId: "zzzzzzzz-zzzz-..."
+    name: "GPS Investments & Incentives [PROD]"
+    workspaceId: "1b5aa9f1-..."
     writeAllowed: false                   # ← Enforced: PROD is read-only
 ```
 
@@ -815,12 +740,11 @@ Adding a new capability = adding a new `SKILL.md` file. No agent code changes ne
 
 | Agent | Domain | Key Responsibility | Tool Access |
 | :--- | :--- | :--- | :--- |
-| **Orchestrator** | Cross-domain | Classify intent, route to specialists, compose multi-agent workflows, context verification, write gates | `runSubagent`, `todo` only |
+| **Orchestrator** | Cross-domain | Classify intent, route to specialists, compose multi-agent workflows | `runSubagent`, `todo` only |
 | **Chief of Staff** | M365 | M365 triage, status emails, meeting prep, comms drafts | WorkIQ, Mail, Calendar, Teams, Word, M365 Copilot |
-| **ADO DevOps** | Azure DevOps | Work items, compliance, board hygiene, multi-item disambiguation, test cases | ADO MCP, Context7, Docs |
-| **Fabric DevOps** | Microsoft Fabric | Full lifecycle — develop, monitor, diagnose, validate, lineage, promote, data access routing | Fabric MCP, Power BI, MSSQL, Context7, Docs |
+| **ADO DevOps** | Azure DevOps | Work items, compliance, board hygiene, test cases, state transitions | ADO MCP, Context7, Docs |
+| **Fabric DevOps** | Microsoft Fabric | Full lifecycle — develop, monitor, diagnose, validate, lineage, promote | Fabric MCP, Power BI, MSSQL, Context7, Docs |
 | **Databricks DevOps** | Azure Databricks | Full lifecycle — notebooks, jobs, clusters, Unity Catalog, security | Databricks-specific tools, Context7 |
-| **Wiki DevOps** | Azure DevOps Wiki | Wiki content management and operations | ADO MCP |
 
 ### Agent Design Rules
 
@@ -914,7 +838,7 @@ Here is a complete trace of what happens when a user says: **"Promote my noteboo
 │    ## Objective                                                                         │
 │    Promote notebook to UAT via deployment pipeline.                                     │
 │    ## Context                                                                           │
-│    Target: UAT (yyyyyyyy-yyyy-...)                                                      │
+│    Target: UAT (456bc970-249a-...)                                                      │
 │    ## Skill Hint                                                                        │
 │    Activate fabric-devops-release-promote                                               │
 │    ## Expected Output                                                                   │
@@ -929,7 +853,7 @@ Here is a complete trace of what happens when a user says: **"Promote my noteboo
 │  4. FABRIC DEVOPS AGENT — INTERNAL ROUTING                                              │
 │                                                                                         │
 │  a. Score triggers → release-promote wins (0.90 × 1.0)                                  │
-│  b. Resolve workspace → UAT: yyyyyyyy-..., writeAllowed: true                           │
+│  b. Resolve workspace → UAT: 456bc970-..., writeAllowed: true                           │
 │  c. Resolve engine → fabric-api (primary for promote-release)                           │
 │  d. Safety check → UAT write allowed ✓                                                  │
 │  e. Execute modules/release-promote.md procedure                                        │
@@ -1015,5 +939,3 @@ Here is a complete trace of what happens when a user says: **"Promote my noteboo
 | Change personal ADO defaults | Edit `config/user-context.yaml` |
 | Add a new agent | Create `.github/agents/<name>.agent.md` + register in `orchestrator.agent.md` |
 | Add ambiguity rules | Edit `skills/fabric-devops/config/intent-router.yaml` `ambiguityRules` section |
-| Run agent evaluations | `@orchestrator Run the evaluation suite` — tests 54 scenarios across 12 categories |
-| Add evaluation scenarios | Edit `.github/evaluations/eval-manifest.yaml` |

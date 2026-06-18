@@ -51,7 +51,7 @@ Every MCP server in this repo authenticates through one of two mechanisms. You d
 ### 3a. Azure CLI login (covers most servers)
 
 ```powershell
-az login            # browser-based sign-in with your corporate account
+az login            # browser-based sign-in with your @microsoft.com account
 az account show     # confirm the right tenant/subscription is active
 ```
 
@@ -73,8 +73,8 @@ When VS Code first activates an MCP server, it will prompt for configuration val
 |---|---|---|
 | **Azure DevOps org** | Your ADO URL slug | `msit` (from `msit.visualstudio.com`) |
 | **ADO domains** | Comma-separated list of API domains | `core, work, work-items, repositories, pipelines, wiki, search, test-plans, advanced-security` |
-| **Team name** | ADO → Project Settings → Teams | `My Team Name` |
-| **Power Platform Environment ID** | [Power Platform Admin Center](https://admin.powerplatform.microsoft.com) → Environments → your env → Details | `xxxxxxxx-xxxx-xxxx-...` |
+| **Team name** | ADO → Project Settings → Teams | `Data and Reporting POD` |
+| **Power Platform Environment ID** | [Power Platform Admin Center](https://admin.powerplatform.microsoft.com) → Environments → your env → Details | `64ccd25c-fa91-e1d7-...` |
 | **Context7 API key** | [upstash.com/context7](https://upstash.com) → Dashboard → API Keys | `ctx7_...` |
 
 > **Tip:** These values are stored in VS Code's input memory — you only enter them once per workspace.
@@ -127,8 +127,8 @@ ado:
       name: "MyProject-DevOps"                   # Project where tasks are created
       defaultAreaPath: "MyProject-DevOps\\MyTeam" # Backslash-escaped area path
     userStories:
-      name: "MyProject"                               # Project where user stories live
-      defaultAreaPath: "MyProject\\MyOrg\\MyTeam"
+      name: "OneMW"                               # Project where user stories live
+      defaultAreaPath: "OneMW\\MyOrg\\MyTeam"
   team: "My Team Name"
   defaultParentWorkItemId: null                   # Optional: default parent work item
 
@@ -347,7 +347,6 @@ Test each agent layer with a quick prompt in Copilot Chat:
 | `@ado-devops Create a task for testing the setup` | ADO MCP + task creation config |
 | `@ado-devops Audit the sprint board` | ADO board hygiene + compliance checks |
 | `@fabric-devops List items in DEV` | Fabric REST API auth + workspace ID |
-| `@orchestrator Run the evaluation suite` | Evaluation framework + all agent routing |
 
 If any prompt fails, check the **Auth troubleshooting** table in Section 3.
 
@@ -374,12 +373,7 @@ copilot-agents/
     │   ├── chief-of-staff.agent.md
     │   ├── ado-devops.agent.md
     │   ├── fabric-devops.agent.md
-    │   ├── databricks-devops.agent.md
-    │   └── wiki-devops.agent.md
-    ├── evaluations/                   ← Agent evaluation framework
-    │   ├── EVAL-FRAMEWORK.md
-    │   ├── baseline.yaml
-    │   └── eval-manifest.yaml
+    │   └── databricks-devops.agent.md
     └── skills/                        ← Skill definitions + config
         ├── create-task/
         ├── daily-status-email/
@@ -388,9 +382,7 @@ copilot-agents/
         ├── compare-semantic-models/
         ├── fabric-devops/             ← Shared resource layer
         ├── fabric-devops-*/           ← Capability skills
-        ├── databricks-devops-*/       ← Capability skills
-        ├── wiki-devops/               ← Wiki operations skill
-        └── agent-eval-runner/         ← Evaluation runner skill
+        └── databricks-devops-*/       ← Capability skills
 ```
 
 ## MCP Server Reference
@@ -417,8 +409,6 @@ copilot-agents/
 | Add a new skill | Create `.github/skills/<name>/SKILL.md` |
 | Add a new MCP server | Add entry to `.vscode/mcp.json` |
 | Add a workspace | Edit `skills/fabric-devops/config/workspace-catalog.yaml` |
-| Run agent evaluations | `@orchestrator Run the evaluation suite` |
-| Add evaluation scenarios | Edit `.github/evaluations/eval-manifest.yaml` |
 
 ## Contributing
 
@@ -426,5 +416,3 @@ copilot-agents/
 2. Add or update agents/skills following existing patterns
 3. Test in VS Code Copilot Chat
 4. Submit a PR
-
-See [CONTRIBUTING.md](../CONTRIBUTING.md) for full guidelines including evaluation framework usage.

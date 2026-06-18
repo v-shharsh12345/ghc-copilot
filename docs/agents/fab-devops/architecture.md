@@ -237,7 +237,7 @@ When the Fabric DevOps agent receives a delegated request (from the orchestrator
   │                                      │
   │  Resolve workspace:                  │
   │    "DEV" → workspace-catalog.yaml    │
-  │    → xxxxxxxx-..., writeAllowed:true │
+  │    → df9b352f-..., writeAllowed:true │
   │                                      │
   │  Execute procedure:                  │
   │  1. Enumerate lakehouse tables       │  → onelake_item_list
@@ -741,25 +741,25 @@ Maps friendly environment names to concrete Fabric identifiers and permission fl
 # config/workspace-catalog.yaml
 workspaces:
   - environment: DEV
-    name: "Contoso Analytics [DEV]"
-    workspaceId: "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
+    name: "GPS Investments & Incentives [DEV]"
+    workspaceId: "df9b352f-ff95-4701-a74a-1d2d3313d717"
     writeAllowed: true
-    defaultLakehouseName: "MainLakehouse"
-    defaultLakehouseId: "yyyyyyyy-yyyy-yyyy-yyyy-yyyyyyyyyyyy"
+    defaultLakehouseName: "IncentiveReporting"
+    defaultLakehouseId: "5f103236-bcaf-4edf-85f7-5181432a2e7c"
 
   - environment: UAT
-    name: "Contoso Analytics [UAT]"
-    workspaceId: "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa"
+    name: "GPS Investments & Incentives [UAT]"
+    workspaceId: "456bc970-249a-43dc-8ebf-d04184834876"
     writeAllowed: true
-    defaultLakehouseName: "MainLakehouse"
-    defaultLakehouseId: "bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb"
+    defaultLakehouseName: "IncentiveReporting"
+    defaultLakehouseId: "f2b5be99-e8d4-4c8c-9507-9023e2a49c3f"
 
   - environment: PROD
-    name: "Contoso Analytics [PROD]"
-    workspaceId: "cccccccc-cccc-cccc-cccc-cccccccccccc"
+    name: "GPS Investments & Incentives [PROD]"
+    workspaceId: "1b5aa9f1-a783-4820-8818-ad3bb2fc9ca9"
     writeAllowed: false                                         # ← ENFORCED: PROD read-only
-    defaultLakehouseName: "MainLakehouse"
-    defaultLakehouseId: "dddddddd-dddd-dddd-dddd-dddddddddddd"
+    defaultLakehouseName: "IncentiveReporting"
+    defaultLakehouseId: "63a9d305-4e2f-4fbf-89d3-f04e1ab5041e"
 ```
 
 When a user says "in DEV", the routing pipeline resolves the full workspace ID, default lakehouse, and permission flags from this single file.
@@ -1020,7 +1020,7 @@ Complete trace: **"Promote my notebook to UAT and validate"**
 ┌─────────────────────────────────────────────────────────────────────────────────────────┐
 │  3. ORCHESTRATOR → runSubagent #1                                                       │
 │     Skill hint: fabric-devops-release-promote                                           │
-│     Context: Target=UAT (aaaaaaaa-...), Constraints: UAT write OK, no PROD              │
+│     Context: Target=UAT (456bc970-...), Constraints: UAT write OK, no PROD              │
 └────────────────────────────────────────┬────────────────────────────────────────────────┘
                                          │
                                          ▼
@@ -1033,7 +1033,7 @@ Complete trace: **"Promote my notebook to UAT and validate"**
 │  d. resolveExecutionProfile: preferred=[fabric-api, fabric-cli]                         │
 │  e. applyEventOverride:      deployment-promotion → [fabric-api, fabric-cli] (same)     │
 │  f. checkEngineAvailability: fabric-api checks pass ✓                                   │
-│  g. resolveWorkspace:        UAT → aaaaaaaa-..., writeAllowed: true ✓                   │
+│  g. resolveWorkspace:        UAT → 456bc970-..., writeAllowed: true ✓                   │
 │  h. safetyCheck:             UAT write allowed ✓                                        │
 └────────────────────────────────────────┬────────────────────────────────────────────────┘
                                          │

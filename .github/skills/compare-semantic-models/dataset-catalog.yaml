@@ -1,0 +1,37 @@
+# Semantic Model Comparator - Dataset Catalog
+# Purpose: Map dataset names to IDs per environment for cross-environment comparison
+#
+# Fill in your dataset GUIDs below. Add one entry per semantic model you want
+# to compare across environments.
+
+metadata:
+  version: "1.0"
+  owner: "BICOE_CSP_VTeam"
+  notes: "PROD-only for now. Add DEV/UAT dataset GUIDs when environments are provisioned."
+
+# =============================================================================
+# DATASETS BY ENVIRONMENT
+# =============================================================================
+
+datasets:
+  CSPvNext:
+    summary: "CSP Partner Status vNext — eligibility, cohorts, at-risk, exemptions, and channel motion reporting"
+    keyTables: [vw_Fact_Market_DB, vw_Fact_Market_IP, vw_Fact_Market_IR, vw_Fact_Planning_Risk_Assessment_Base, vw_Dim_Cohorts_Combined, vw_Dim_At_Risk, vw_Dim_PAGE_Data]
+    keyMeasures: []
+    environments:
+      PROD:
+        datasetId: "9ada3c1a-b696-46e7-bc49-1fb9e055f0a7"
+        workspace: "GPS_PRD_PPR_PBIReporting"
+        workspaceId: "3bb37235-5667-4f18-be9e-e9ade7c9092e"
+        url: "https://msit.powerbi.com/onelake/details/3bb37235-5667-4f18-be9e-e9ade7c9092e/dataset/9ada3c1a-b696-46e7-bc49-1fb9e055f0a7/overview?experience=power-bi"
+
+# =============================================================================
+# QUICK LOOKUP TEMPLATE
+# =============================================================================
+# Example usage in agent:
+#   1. User says: "Compare ExampleDataset1 DEV vs PROD"
+#   2. Look up: datasets.ExampleDataset1.environments.DEV.datasetId
+#   3. Look up: datasets.ExampleDataset1.environments.PROD.datasetId
+#   4. Run GetSemanticModelSchema on both
+#   5. Run comparison queries on both
+#   6. Report differences

@@ -37,12 +37,10 @@ description: Create, update, and build Fabric items (notebooks, pipelines, lakeh
 
 1. Resolve environment and workspace from [workspace-catalog.yaml](../fabric-devops/config/workspace-catalog.yaml).
 2. Block operation if target is PROD and request is a write.
-3. **If item is a Notebook:** run the [Notebook Prerequisites Checklist](../fabric-devops/modules/develop.md#notebook-prerequisites-checklist) before proceeding.
-4. **If item is a Notebook:** follow the [Notebook Deployment Protocol](../fabric-devops/modules/develop.md#notebook-deployment-protocol) (create vs update, path format, fallback strategy).
-5. **For data access:** use the [Data Access Decision Matrix](../fabric-devops/modules/develop.md#data-access-decision-matrix) to pick SQL endpoint vs OneLake vs Power BI Remote.
-6. For non-Notebook items: validate dependencies (lakehouse attachment, item references), then apply create/update via preferred engine.
-7. Run smoke test where applicable (but NOT notebook execution — see protocol).
-8. Return summary with item IDs, prerequisite check results, and status.
+3. Validate dependencies (notebook metadata, lakehouse attachment, item references).
+4. Apply create/update operation via preferred engine.
+5. Run smoke test where applicable.
+6. Return summary with item IDs and status.
 
 Canonical procedure reference: [develop.md](../fabric-devops/modules/develop.md)
 

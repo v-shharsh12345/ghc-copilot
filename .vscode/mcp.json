@@ -1,0 +1,100 @@
+{
+  "servers": {
+    "microsoft/azure-devops-mcp": {
+      "type": "stdio",
+      "command": "npx",
+      "args": [
+        "-y",
+        "@azure-devops/mcp@latest",
+        "MCAPSDataEngineering",
+        "-d",
+        "core, work, work-items, search, test-plans, repositories, wiki, pipelines, advanced-security",
+        "-d",
+        "Global Partner Solutions Team"
+      ]
+    },
+    "microsoft/playwright-mcp": {
+      "type": "stdio",
+      "command": "npx",
+      "args": ["-y", "@playwright/mcp@latest"]
+    },
+    "workiq": {
+      "type": "stdio",
+      "command": "npx",
+      "args": ["-y", "@microsoft/workiq", "mcp"]
+    },
+    "io.github.upstash/context7": {
+      "type": "stdio",
+      "command": "npx",
+      "args": ["-y", "@upstash/context7-mcp@1.0.31"],
+      "env": {
+        "CONTEXT7_API_KEY": "${input:CONTEXT7_API_KEY}"
+      }
+    },
+    "mcp_MailTools": {
+      "type": "http",
+      "url": "https://agent365.svc.cloud.microsoft/mcp/environments/edb4dbfc-8d46-ec3c-9e92-0a8090b7fed4/servers/mcp_MailTools",
+      "auth": {
+        "type": "oauth2_identity_passthrough"
+      }
+    },
+    "mcp_CalendarTools": {
+      "type": "http",
+      "url": "https://agent365.svc.cloud.microsoft/mcp/environments/edb4dbfc-8d46-ec3c-9e92-0a8090b7fed4/servers/mcp_CalendarTools",
+      "auth": {
+        "type": "oauth2_identity_passthrough"
+      }
+    },
+    "mcp_TeamsServer": {
+      "type": "http",
+      "url": "https://agent365.svc.cloud.microsoft/mcp/environments/edb4dbfc-8d46-ec3c-9e92-0a8090b7fed4/servers/mcp_TeamsServer",
+      "auth": {
+        "type": "oauth2_identity_passthrough"
+      }
+    },
+    "mcp_M365Copilot": {
+      "type": "http",
+      "url": "https://agent365.svc.cloud.microsoft/mcp/environments/edb4dbfc-8d46-ec3c-9e92-0a8090b7fed4/servers/mcp_M365Copilot",
+      "auth": {
+        "type": "oauth2_identity_passthrough"
+      }
+    },
+    "mcp_WordServer": {
+      "type": "http",
+      "url": "https://agent365.svc.cloud.microsoft/mcp/environments/edb4dbfc-8d46-ec3c-9e92-0a8090b7fed4/servers/mcp_WordServer",
+      "auth": {
+        "type": "oauth2_identity_passthrough"
+      }
+    },
+    "powerbi-remote": {
+      "type": "http",
+      "url": "https://api.fabric.microsoft.com/v1/mcp/powerbi"
+    },
+    "microsoftdocs/mcp": {
+      "type": "http",
+      "url": "https://learn.microsoft.com/api/mcp"
+    }
+  },
+  "inputs": [
+    {
+      "id": "CONTEXT7_API_KEY",
+      "type": "promptString",
+      "description": "Context7 API key for library documentation lookup (get from https://context7.com)",
+      "password": true
+    },
+    {
+      "id": "environment_id",
+      "type": "promptString",
+      "description": "Power Platform Environment ID (find in Power Platform admin center)",
+      "password": false,
+      "default": "edb4dbfc-8d46-ec3c-9e92-0a8090b7fed4"
+    },
+    {
+      "id": "tenant_id",
+      "type": "promptString",
+      "description": "Microsoft Entra Tenant ID (find in Azure Portal → Microsoft Entra ID → Overview)",
+      "password": false,
+      "default": "72f988bf-86f1-41af-91ab-2d7cd011db47"
+    }
+  ]
+}

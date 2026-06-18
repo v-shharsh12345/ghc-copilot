@@ -1,7 +1,7 @@
 ---
 name: chief-of-staff
 description: Chief of Staff subagent for M365 triage, communication workflows, and productivity execution.
-user-invokable: false
+user-invokable: true
 tools: ['workiq/ask_work_iq', 'mcp_m365copilot/copilot_chat', 'mcp_mailtools/CreateDraftMessage', 'mcp_mailtools/SearchMessages', 'mcp_mailtools/SendDraftMessage', 'mcp_mailtools/SendEmailWithAttachments', 'mcp_mailtools/UpdateDraft', 'read/readFile', 'search/fileSearch', 'search/textSearch', 'todo']
 ---
 

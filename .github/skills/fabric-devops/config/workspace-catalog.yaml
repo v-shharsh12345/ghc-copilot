@@ -1,0 +1,26 @@
+version: 1.0
+updatedOn: 2026-02-23
+
+# =============================================================================
+# Workspace Catalog — Fabric workspace GUIDs.
+# This file is read by all Fabric DevOps capability skills.
+# =============================================================================
+
+workspaces:
+  - environment: DEV
+    role: Processing
+    name: "GPS_MSSales_Dev_Processing"
+    workspaceId: "25b2ebd6-eccc-48eb-8f72-0269361e4c25"
+    subfolderId: "17255"
+    writeAllowed: true
+    url: "https://msit.powerbi.com/groups/25b2ebd6-eccc-48eb-8f72-0269361e4c25/list?experience=power-bi&subfolderId=17255"
+
+  - environment: PROD
+    role: Reporting
+    name: "GPS_PRD_PPR_PBIReporting"
+    workspaceId: "3bb37235-5667-4f18-be9e-e9ade7c9092e"
+    subfolderId: "93186"
+    writeAllowed: false
+    url: "https://msit.powerbi.com/groups/3bb37235-5667-4f18-be9e-e9ade7c9092e/list?experience=power-bii&subfolderId=93186"
+
+
