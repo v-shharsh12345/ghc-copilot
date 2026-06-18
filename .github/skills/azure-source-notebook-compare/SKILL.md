@@ -125,21 +125,24 @@ Schema / table reference mapping (PPR → Sales):
 | --- | --- |
 | Database `[PPR Warehouse]` | `[POSOT_Sales]` |
 | Schema `[Gold]` | latest dated `[SalesGoldYYYYMMDDnn]` |
-| Fact `[FactSalesPPR]` | `[FactSales]` (corresponding Sales fact) |
-| Time dim `[DimIntegrationTime]` | `[DimSalesTime]` (corresponding Sales time dim) |
+| Fact `[FactSalesPPR]` | `[FactSales]` (PPR fact does **not** exist in Sales — required substitution) |
+| Time dim `[DimIntegrationTime]` | **`POSOT_Integration.[IntegrationGoldYYYYMMDDnn].[DimIntegrationTime]`** (NOT `DimSalesTime`) |
 | `[Map_Partner_Association_Sales]` | same name |
 | `[DimPartnerAssociation]` | same name |
 
 Column/measure names stay the same across both sides (`AssociationID`, `SoldSeatsRevenue`, `FiscalMonthID`, `FiscalMonthName`).
 
+**Critical — time dimension source.** On the Sales side, `DimIntegrationTime` must come from the integration workspace (`POSOT_Integration`, latest `IntegrationGoldYYYYMMDDnn`), the same as the PPR query's `DimIntegrationTime`. Do **NOT** map it to Sales `DimSalesTime`: `DimSalesTime` has multiple rows per `FiscalMonthID`, so joining it fans out `SUM(SoldSeatsRevenue)` ~30× and produces a false ~−96.7% diff. `POSOT_Integration.DimIntegrationTime` is unique per `FiscalMonthID`. Because `FactSales` (Sales endpoint) and `DimIntegrationTime` (integration endpoint) are on different SQL endpoints, aggregate `FactSales` by `FiscalMonthID` on the Sales endpoint, fetch `DimIntegrationTime (FiscalMonthID, FiscalMonthName)` from `POSOT_Integration` separately, then INNER JOIN in-memory. With this mapping PPR vs Sales reconciles to ~0% for closed months.
+
 Rules:
 - Keep the query logic identical: same CTE, same join keys, same `GROUP BY` grain, same measure (e.g. `SUM(SoldSeatsRevenue)`).
 - Run BOTH PPR (Sales) notebook queries (fiscal month + association type) unless the user names a specific one.
 - Resolve the latest `SalesGoldYYYYMMDDnn` schema that contains all mapped tables; if one is missing, walk back to a previous schema or report the exact blocker.
-- Only substitute a table/column name when the PPR name does not exist in Sales; map by lineage role (fact↔fact, time-dim↔time-dim) and **report every substitution made**.
+- Only substitute a table/column name when the PPR name does not exist in Sales; map by lineage role (fact↔fact) and **report every substitution made**.
+- Source the Sales-side `DimIntegrationTime` from `POSOT_Integration` (latest `IntegrationGoldYYYYMMDDnn`), join in-memory; never substitute `DimSalesTime` (causes ~30× fan-out).
 - Do not re-introduce the standalone Sales query (with `DimBusiness` / `BusinessSummaryID` / `IsDisti` filters) for this mode — that is a different validation.
 - Output one `%Diff` per shared grain key (`FiscalMonthID` for query 1, `AssociationName` for query 2) per the global Percentage Difference Rule.
-- Runner script: `scripts/ppr-vs-sales-validate.ps1` (runs both queries, writes two-sheet `PPRWarehouse_vs_Sales_Validation.xlsx` + CSVs).
+- Runner script: `scripts/ppr-vs-sales-validate.ps1` (runs both queries, sources Sales time dim from `POSOT_Integration`, writes timestamped two-sheet Excel to local `Downloads` + CSVs).
 
 ## Inputs
 

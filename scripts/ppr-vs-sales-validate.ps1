@@ -27,25 +27,48 @@ $salesServer = "x6eps4xrq2xudenlfv6naeo3i4-wkxkhwrfvh7exepkpoy75r6w7a.msit-dataw
 $salesDb     = "POSOT_Sales"
 $pprServer   = "x6eps4xrq2xudenlfv6naeo3i4-gs7rn6r7m2oetco33xb7dwa6o4.msit-datawarehouse.fabric.microsoft.com"
 $pprDb       = "PPR Warehouse"
+# DimIntegrationTime lives in POSOT_Integration (integration workspace), NOT in Sales.
+$intServer   = "x6eps4xrq2xudenlfv6naeo3i4-gs7rn6r7m2oetco33xb7dwa6o4.msit-datawarehouse.fabric.microsoft.com"
+$intDb       = "POSOT_Integration"
 
-# Resolve latest SalesGold schema with all mapped tables
+# Resolve latest SalesGold schema (FactSales + Map_Partner_Association_Sales + DimPartnerAssociation)
 $schemaSql = @"
 SELECT s.name AS SchemaName
 FROM sys.schemas s
 WHERE s.name LIKE 'SalesGold20%'
   AND EXISTS (SELECT 1 FROM sys.tables t WHERE t.schema_id = s.schema_id AND t.name = 'FactSales')
-  AND EXISTS (SELECT 1 FROM sys.tables t WHERE t.schema_id = s.schema_id AND t.name = 'DimSalesTime')
   AND EXISTS (SELECT 1 FROM sys.tables t WHERE t.schema_id = s.schema_id AND t.name = 'Map_Partner_Association_Sales')
   AND EXISTS (SELECT 1 FROM sys.tables t WHERE t.schema_id = s.schema_id AND t.name = 'DimPartnerAssociation')
 ORDER BY s.name DESC
 "@
 $schemaDt = Invoke-FabricQuery -server $salesServer -db $salesDb -token $sqlTok -sql $schemaSql
-if ($schemaDt.Rows.Count -eq 0) { throw "No SalesGold schema with all mapped tables found." }
+if ($schemaDt.Rows.Count -eq 0) { throw "No SalesGold schema with required tables found." }
 $salesSchema = [string]$schemaDt.Rows[0]["SchemaName"]
 Write-Host "Resolved latest SalesGold schema: $salesSchema"
 
+# Resolve latest IntegrationGold schema holding DimIntegrationTime
+$intSchemaSql = @"
+SELECT s.name AS SchemaName
+FROM sys.schemas s
+WHERE s.name LIKE 'IntegrationGold20%'
+  AND EXISTS (SELECT 1 FROM sys.tables t WHERE t.schema_id = s.schema_id AND t.name = 'DimIntegrationTime')
+ORDER BY s.name DESC
+"@
+$intSchemaDt = Invoke-FabricQuery -server $intServer -db $intDb -token $sqlTok -sql $intSchemaSql
+if ($intSchemaDt.Rows.Count -eq 0) { throw "No IntegrationGold schema with DimIntegrationTime found." }
+$intSchema = [string]$intSchemaDt.Rows[0]["SchemaName"]
+Write-Host "Resolved latest IntegrationGold schema: $intSchema"
+
+# Fetch DimIntegrationTime (FiscalMonthID -> FiscalMonthName) from POSOT_Integration once; join in-memory.
+$ditSql = "SELECT DISTINCT FiscalMonthID, FiscalMonthName FROM [$intSchema].[DimIntegrationTime] WHERE FiscalMonthID IS NOT NULL"
+$ditDt = Invoke-FabricQuery -server $intServer -db $intDb -token $sqlTok -sql $ditSql
+$dit = @{}
+foreach ($r in $ditDt.Rows) { $dit[[int]$r["FiscalMonthID"]] = [string]$r["FiscalMonthName"] }
+Write-Host "DimIntegrationTime rows (integration): $($ditDt.Rows.Count)"
+
 # =====================================================================
-# QUERY 1: PPR Warehouse based on Fiscalmonth(Sales)  -- notebook query
+# QUERY 1: PPR Warehouse based on Fiscalmonth(Sales)
+# PPR side: uses [PPR Warehouse].[Gold].[DimIntegrationTime] (notebook verbatim).
 # =====================================================================
 $pprFmSql = @"
 with cte as (
@@ -62,7 +85,8 @@ GROUP BY F.FiscalMonthID, T.FiscalMonthName
 ORDER BY F.FiscalMonthID
 "@
 
-# SAME query, schema-swapped for Sales
+# Sales side: SAME query, only schema swapped. FactSalesPPR -> FactSales (PPR fact absent in Sales).
+# DimIntegrationTime taken from POSOT_Integration (joined in-memory below), NOT DimSalesTime.
 $salesFmSql = @"
 with cte as (
     SELECT Distinct A.AssociationID
@@ -70,16 +94,17 @@ with cte as (
     inner join [$salesSchema].[DimPartnerAssociation] M
     on M.AssociationID = A.AssociationID
 )
-SELECT F.FiscalMonthID, T.FiscalMonthName, SUM(F.SoldSeatsRevenue) AS TotalSoldSeatsRevenue
+SELECT F.FiscalMonthID, SUM(F.SoldSeatsRevenue) AS TotalSoldSeatsRevenue
 FROM [$salesSchema].[FactSales] F
-inner JOIN [$salesSchema].[DimSalesTime] T ON T.FiscalMonthID = F.FiscalMonthID
 inner join cte c on c.AssociationID = F.AssociationID
-GROUP BY F.FiscalMonthID, T.FiscalMonthName
+GROUP BY F.FiscalMonthID
 ORDER BY F.FiscalMonthID
 "@
 
 # =====================================================================
-# QUERY 2: PPR Warehouse based on Association Type(Sales) -- notebook query
+# QUERY 2: PPR Warehouse based on Association Type(Sales)
+# DimIntegrationTime here is a LEFT JOIN not used in output/filter (no-op on the
+# AssociationName grouped sum when FiscalMonthID is unique in the time dim).
 # =====================================================================
 $pprAtSql = @"
 with cte as (
@@ -93,7 +118,6 @@ LEFT JOIN [PPR Warehouse].[Gold].[DimIntegrationTime] DT ON FAC.FiscalMonthID = 
 GROUP BY M.AssociationName
 "@
 
-# SAME query, schema-swapped for Sales
 $salesAtSql = @"
 with cte as (
     SELECT Distinct A.AssociationID, A.AssociationName
@@ -102,7 +126,6 @@ with cte as (
 SELECT M.AssociationName, SUM(SoldSeatsRevenue) AS BilledRevenue
 FROM [$salesSchema].[FactSales] AS FAC
 Inner join cte M on M.AssociationID = FAC.AssociationID
-LEFT JOIN [$salesSchema].[DimSalesTime] DT ON FAC.FiscalMonthID = DT.FiscalMonthID
 GROUP BY M.AssociationName
 "@
 
@@ -112,14 +135,22 @@ $runUtc = (Get-Date).ToUniversalTime().ToString("yyyy-MM-dd HH:mm:ss")
 Write-Host "`n=== Q1 PPR (by FiscalMonth) ==="
 $pprFm = Invoke-FabricQuery -server $pprServer -db $pprDb -token $sqlTok -sql $pprFmSql
 Write-Host "  PPR rows: $($pprFm.Rows.Count)"
-Write-Host "=== Q1 Sales (same query, schema-swapped) ==="
+Write-Host "=== Q1 Sales (same query, schema-swapped; time from POSOT_Integration) ==="
 $salesFm = Invoke-FabricQuery -server $salesServer -db $salesDb -token $sqlTok -sql $salesFmSql
-Write-Host "  Sales rows: $($salesFm.Rows.Count)"
+Write-Host "  Sales rows (pre time-join): $($salesFm.Rows.Count)"
 
 $pprH = @{}; $names = @{}
 foreach ($r in $pprFm.Rows) { $fm = [int]$r["FiscalMonthID"]; $pprH[$fm] = [decimal]$r["TotalSoldSeatsRevenue"]; $names[$fm] = [string]$r["FiscalMonthName"] }
+
+# Sales: INNER JOIN with DimIntegrationTime (integration) -> keep only FMs present in DimIntegrationTime.
 $salH = @{}
-foreach ($r in $salesFm.Rows) { $fm = [int]$r["FiscalMonthID"]; $salH[$fm] = [decimal]$r["TotalSoldSeatsRevenue"]; if (-not $names.ContainsKey($fm)) { $names[$fm] = [string]$r["FiscalMonthName"] } }
+foreach ($r in $salesFm.Rows) {
+  $fm = [int]$r["FiscalMonthID"]
+  if ($dit.ContainsKey($fm)) {
+    $salH[$fm] = [decimal]$r["TotalSoldSeatsRevenue"]
+    if (-not $names.ContainsKey($fm)) { $names[$fm] = $dit[$fm] }
+  }
+}
 
 $fmResults = [System.Collections.Generic.List[object]]::new()
 foreach ($fm in (($pprH.Keys + $salH.Keys) | Sort-Object -Unique)) {
@@ -130,7 +161,9 @@ foreach ($fm in (($pprH.Keys + $salH.Keys) | Sort-Object -Unique)) {
   $fmResults.Add([pscustomobject][ordered]@{
     FiscalMonthID = $fm; FiscalMonthName = $names[$fm]
     PPR_TotalSoldSeatsRevenue = $p; Sales_TotalSoldSeatsRevenue = $s; PctDiff = $pct
-    PPR_Source = "PPR Warehouse.Gold.FactSalesPPR"; Sales_Source = "POSOT_Sales.$salesSchema.FactSales"; QueryRunUTC = $runUtc
+    PPR_Source = "PPR Warehouse.Gold.FactSalesPPR + Gold.DimIntegrationTime"
+    Sales_Source = "POSOT_Sales.$salesSchema.FactSales + POSOT_Integration.$intSchema.DimIntegrationTime"
+    QueryRunUTC = $runUtc
   })
 }
 
@@ -165,11 +198,12 @@ $fmResults | Export-Csv -Path "scripts\ppr-vs-sales-fiscalmonth.csv" -NoTypeInfo
 $atResults | Export-Csv -Path "scripts\ppr-vs-sales-associationtype.csv" -NoTypeInformation -Encoding UTF8
 Write-Host "`nSaved CSV: scripts\ppr-vs-sales-fiscalmonth.csv, scripts\ppr-vs-sales-associationtype.csv"
 
-# ---------------- Excel (two sheets) ----------------
-$rootXlsx = (Resolve-Path ".").Path + "\PPRWarehouse_vs_Sales_Validation.xlsx"
-if (Test-Path $rootXlsx) { Remove-Item $rootXlsx -Force }
+# ---------------- Excel (two sheets) -> local Downloads (non-OneDrive) ----------------
+$outDir = Join-Path $env:USERPROFILE "Downloads"
+$stamp = Get-Date -Format "yyyyMMdd_HHmmss"
+$xlsx = Join-Path $outDir "PPRWarehouse_vs_Sales_Validation_$stamp.xlsx"
 
-$pkg = $fmResults | Export-Excel -Path $rootXlsx -WorksheetName "By FiscalMonth" -AutoSize -BoldTopRow -FreezeTopRow -PassThru
+$pkg = $fmResults | Export-Excel -Path $xlsx -WorksheetName "By FiscalMonth" -AutoSize -BoldTopRow -FreezeTopRow -PassThru
 $ws1 = $pkg.Workbook.Worksheets["By FiscalMonth"]
 $last1 = $fmResults.Count + 1
 $ws1.Cells["E2:E$last1"].Style.Numberformat.Format = "0.00%"
@@ -178,7 +212,7 @@ for ($i = 0; $i -lt $fmResults.Count; $i++) { $row = $i + 2; $v = $fmResults[$i]
   if ($v -ne $null -and [math]::Abs([double]$v) -gt 0.0001) { $ws1.Cells["E$row"].Style.Font.Bold = $true; $ws1.Cells["E$row"].Style.Font.Color.SetColor([System.Drawing.Color]::Red) } }
 Close-ExcelPackage $pkg
 
-$pkg2 = $atResults | Export-Excel -Path $rootXlsx -WorksheetName "By AssociationType" -AutoSize -BoldTopRow -FreezeTopRow -PassThru
+$pkg2 = $atResults | Export-Excel -Path $xlsx -WorksheetName "By AssociationType" -AutoSize -BoldTopRow -FreezeTopRow -PassThru
 $ws2 = $pkg2.Workbook.Worksheets["By AssociationType"]
 $last2 = $atResults.Count + 1
 $ws2.Cells["D2:D$last2"].Style.Numberformat.Format = "0.00%"
@@ -186,16 +220,12 @@ $ws2.Cells["B2:C$last2"].Style.Numberformat.Format = "#,##0.00"
 for ($i = 0; $i -lt $atResults.Count; $i++) { $row = $i + 2; $v = $atResults[$i].PctDiff
   if ($v -ne $null -and [math]::Abs([double]$v) -gt 0.0001) { $ws2.Cells["D$row"].Style.Font.Bold = $true; $ws2.Cells["D$row"].Style.Font.Color.SetColor([System.Drawing.Color]::Red) } }
 Close-ExcelPackage $pkg2
-Write-Host "Saved Excel: $rootXlsx"
-
-# Desktop copy
-$deskPath = [Environment]::GetFolderPath("Desktop") + "\PPRWarehouse_vs_Sales_Validation.xlsx"
-try { Copy-Item $rootXlsx $deskPath -Force; Write-Host "Saved Excel (Desktop): $deskPath" }
-catch { $dt = Get-Date -Format "yyyyMMdd_HHmmss"; $alt = [Environment]::GetFolderPath("Desktop") + "\PPRWarehouse_vs_Sales_Validation_$dt.xlsx"; Copy-Item $rootXlsx $alt -Force; Write-Host "Desktop locked; saved: $alt" }
+Write-Host "Saved Excel: $xlsx"
 
 # ---------------- Summary ----------------
-Write-Host "`n=== Q1 By FiscalMonth (same query, schema-swapped) ==="
+Write-Host "`n=== Q1 By FiscalMonth (PPR vs Sales; time dim from POSOT_Integration) ==="
 $fmResults | Format-Table FiscalMonthID, FiscalMonthName, PPR_TotalSoldSeatsRevenue, Sales_TotalSoldSeatsRevenue, @{N='PctDiff';E={ if ($_.PctDiff -ne $null) { '{0:P2}' -f $_.PctDiff } else { 'n/a' } }} -AutoSize | Out-String -Width 200 | Write-Host
-Write-Host "`n=== Q2 By AssociationType (same query, schema-swapped) ==="
+Write-Host "`n=== Q2 By AssociationType ==="
 $atResults | Format-Table AssociationName, PPR_BilledRevenue, Sales_BilledRevenue, @{N='PctDiff';E={ if ($_.PctDiff -ne $null) { '{0:P2}' -f $_.PctDiff } else { 'n/a' } }} -AutoSize | Out-String -Width 200 | Write-Host
+Start-Process $xlsx
 Write-Host "DONE"
